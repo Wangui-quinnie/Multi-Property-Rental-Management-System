@@ -4,25 +4,27 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 
-
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
             "id",
             "email",
+            "username",
             "first_name",
             "last_name",
+            "full_name",
             "phone_number",
             "role",
             "is_email_verified",
         )
-        read_only_fields = (
-            "id",
-            "email",
-            "role",
-            "is_email_verified",
-        )
+
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
 
 
 class LoginSerializer(serializers.Serializer):
