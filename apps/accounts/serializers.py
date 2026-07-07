@@ -26,6 +26,14 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name()
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "first_name",
+            "last_name",
+            "phone_number",
+        )
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
