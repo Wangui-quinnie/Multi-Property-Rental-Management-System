@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+    <title>Landlord Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 24px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        select, button {
+            padding: 8px 12px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .card strong {
+            font-size: 24px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef3f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div>
+            <h1>Landlord Dashboard</h1>
+            <p>Rental performance summary</p>
+        </div>
+
+        <form method="get">
+            <select name="property">
+                <option value="">All properties</option>
+                {% for property in properties %}
+                    <option value="{{ property.id }}" {% if selected_property_id == property.id|stringformat:"s" %}selected{% endif %}>
+                        {{ property.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit">Filter</button>
+        </form>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Rent Collected</h3>
+            <strong>KES {{ rent_collection.total_collected }}</strong>
+            <p>{{ rent_collection.payment_count }} payment(s)</p>
+        </div>
+
+        <div class="card">
+            <h3>Arrears</h3>
+            <strong>KES {{ arrears.total_arrears }}</strong>
+            <p>{{ arrears.tenants_in_arrears }} tenant(s)</p>
+        </div>
+
+        <div class="card">
+            <h3>Occupancy</h3>
+            <strong>{{ occupancy.occupancy_rate }}%</strong>
+            <p>{{ occupancy.occupied_units }} occupied / {{ occupancy.total_units }} total</p>
+        </div>
+
+        <div class="card">
+            <h3>Water Billing</h3>
+            <strong>KES {{ water.total_water_billed }}</strong>
+            <p>{{ water.total_units_consumed }} units consumed</p>
+        </div>
+    </div>
+
+    <h2>Property Income Summary</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Units</th>
+                <th>Total Billed</th>
+                <th>Total Paid</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in property_income %}
+                <tr>
+                    <td>{{ item.property.name }}</td>
+                    <td>{{ item.unit_count }}</td>
+                    <td>KES {{ item.total_billed }}</td>
+                    <td>KES {{ item.total_paid }}</td>
+                    <td>KES {{ item.total_balance }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No report data available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
