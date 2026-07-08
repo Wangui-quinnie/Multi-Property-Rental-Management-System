@@ -115,3 +115,13 @@ class LoginSerializer(serializers.Serializer):
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
+    
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    def save(self):
+        token = RefreshToken(
+            self.validated_data["refresh"]
+        )
+
+        token.blacklist()
