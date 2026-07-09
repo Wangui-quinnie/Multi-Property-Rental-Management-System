@@ -1,10 +1,16 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, UserSerializer, ProfileUpdateSerializer, ChangePasswordSerializer, LogoutSerializer
+from apps.core.api.responses import success_response
+from apps.core.api.mixins import CurrentUserMixin
+from .serializers import (
+    LoginSerializer,
+    UserSerializer,
+    ProfileUpdateSerializer,
+    ChangePasswordSerializer,
+    LogoutSerializer,
+)
 
 
 class LoginView(APIView):
@@ -14,38 +20,42 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        return Response(
-            {
+        return success_response(
+            data={
                 "access": serializer.validated_data["access"],
                 "refresh": serializer.validated_data["refresh"],
-                "user": UserSerializer(
-                    serializer.validated_data["user"]
-                ).data,
+                "user": UserSerializer(serializer.validated_data["user"]).data,
             },
-            status=status.HTTP_200_OK,
+            message="Login successful.",
+            status_code=status.HTTP_200_OK,
         )
 
-class ProfileView(APIView):
+
+class ProfileView(CurrentUserMixin, APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+        serializer = UserSerializer(self.user)
+        return success_response(
+            data=serializer.data,
+            message="Profile retrieved successfully.",
+        )
 
     def patch(self, request):
         serializer = ProfileUpdateSerializer(
-            request.user,
+            self.user,
             data=request.data,
             partial=True,
         )
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(
-            UserSerializer(request.user).data,
-            status=status.HTTP_200_OK,
+        return success_response(
+            data=UserSerializer(request.user).data,
+            message="Profile updated successfully.",
         )
+
+
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -54,33 +64,18 @@ class ChangePasswordView(APIView):
             data=request.data,
             context={"request": request},
         )
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(
-            {
-                "message":
-                    "Password changed successfully."
-            },
-            status=status.HTTP_200_OK,
-        )
-    
+        return success_response(message="Password changed successfully.")
+
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = LogoutSerializer(
-            data=request.data
-        )
-
+        serializer = LogoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(
-            {
-                "message":
-                    "Logged out successfully."
-            },
-            status=status.HTTP_200_OK,
-        )
+        return success_response(message="Logged out successfully.")
