@@ -1,3 +1,4 @@
+from django.db.models import Count, Q
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,11 +8,14 @@ from apps.core.api.pagination import DefaultPagination
 from apps.core.api.permissions import IsAdminOrLandlord
 
 from .filters import PropertyFilter
-from .models import Property
+from .models import Property, Unit
 from .serializers import (
     PropertyCreateSerializer,
     PropertySerializer,
     PropertyUpdateSerializer,
+    UnitCreateSerializer,
+    UnitSerializer,
+    UnitUpdateSerializer,
 )
 
 class PropertyViewSet(ModelViewSet):
@@ -70,6 +74,34 @@ class PropertyViewSet(ModelViewSet):
             return queryset
 
         return queryset.filter(landlord=user)
+    
+class UnitViewSet(ModelViewSet):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminOrLandlord,
+    ]
+
+    pagination_class = DefaultPagination
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        queryset = (
+            Unit.objects
+            .select_related(
+                "property",
+                "property__landlord",
+            )
+        )
+
+        if user.role == user.Role.ADMIN:
+            return queryset
+
+        return queryset.filter(
+            property__landlord=user
+        )
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -82,14 +114,36 @@ class PropertyViewSet(ModelViewSet):
             return PropertyUpdateSerializer
 
         return PropertySerializer
-
+        
     def perform_create(self, serializer):
+        property = serializer.validated_data["property"]
+
         user = self.request.user
 
         if user.role == user.Role.ADMIN:
             serializer.save()
         else:
             serializer.save(landlord=user)
+        
+        #Prevents malicious requests
+        if (user.role == user.Role.LANDLORD and property.landlord != user):
+            raise PermissionDenied(
+                "You cannot add units to another landlord's property."
+            )
+        serializer.save()
 
     def perform_update(self, serializer):
         serializer.save()
+    
+    def get_serializer_class(self):
+
+        if self.action == "create":
+            return UnitCreateSerializer
+
+        if self.action in (
+            "update",
+            "partial_update",
+        ):
+            return UnitUpdateSerializer
+
+        return UnitSerializer
