@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
-from .models import Property
+from apps.accounts.models import User
 
+from .models import Property, Unit
 
+#read responses
 class PropertySerializer(serializers.ModelSerializer):
     landlord_name = serializers.CharField(
         source="landlord.get_full_name",
@@ -42,15 +44,19 @@ class PropertySerializer(serializers.ModelSerializer):
 
     def get_occupied_units(self, obj):
         return obj.units.filter(
-            status="OCCUPIED"
-        ).count()
+            status=Unit.Status.OCCUPIED
+    ).count()
+
 
     def get_vacant_units(self, obj):
         return obj.units.filter(
-            status="VACANT"
+            status=Unit.Status.VACANT
         ).count()
+    
 
-class PropertyWriteSerializer(serializers.ModelSerializer):
+
+#create
+class PropertyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
         fields = (
@@ -62,9 +68,20 @@ class PropertyWriteSerializer(serializers.ModelSerializer):
             "status",
         )
 
-    def validate_landlord(self, value):
-        if value.role != value.Role.LANDLORD:
+    def validate_landlord(self, landlord):
+        if landlord.role != User.Role.LANDLORD:
             raise serializers.ValidationError(
-                "Selected user is not a landlord."
+                "Selected user must have the LANDLORD role."
             )
-        return value
+        return landlord
+
+#update 
+class PropertyUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Property
+        fields = (
+            "name",
+            "location",
+            "address",
+            "status",
+        )
