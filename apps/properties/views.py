@@ -1,9 +1,12 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.core.api.pagination import DefaultPagination
 from apps.core.api.permissions import IsAdminOrLandlord
 
+from .filters import PropertyFilter
 from .models import Property
 from .serializers import (
     PropertyCreateSerializer,
@@ -11,8 +14,8 @@ from .serializers import (
     PropertyUpdateSerializer,
 )
 
-
 class PropertyViewSet(ModelViewSet):
+
     permission_classes = [
         IsAuthenticated,
         IsAdminOrLandlord,
@@ -20,22 +23,53 @@ class PropertyViewSet(ModelViewSet):
 
     pagination_class = DefaultPagination
 
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        OrderingFilter,
+    ]
+
+    filterset_class = PropertyFilter
+
+    search_fields = [
+        "name",
+        "code",
+        "location",
+    ]
+
+    ordering_fields = [
+        "name",
+        "location",
+        "created_at",
+    ]
+
+    ordering = [
+        "name",
+    ]
+
     def get_queryset(self):
         user = self.request.user
 
         queryset = (
-            Property.objects
-            .select_related("landlord")
-            .prefetch_related("units")
+            property.objects.select_related("landlord")
+            .annotate(
+                total_units=Count("units"),
+                occupied_units=Count(
+                    "units",
+                    filter=Q(units__status="OCCUPIED"),
+                ),
+                vacant_units=Count(
+                    "units",
+                    filter=Q(units__status="VACANT"),
+                ),
+            )
             .order_by("name")
         )
 
         if user.role == user.Role.ADMIN:
             return queryset
 
-        return queryset.filter(
-            landlord=user
-        )
+        return queryset.filter(landlord=user)
 
     def get_serializer_class(self):
         if self.action == "create":

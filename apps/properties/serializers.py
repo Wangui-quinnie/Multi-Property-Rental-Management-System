@@ -4,16 +4,16 @@ from apps.accounts.models import User
 
 from .models import Property, Unit
 
-#read responses
+#read responses(GET)
 class PropertySerializer(serializers.ModelSerializer):
     landlord_name = serializers.CharField(
         source="landlord.get_full_name",
         read_only=True
     )
 
-    total_units = serializers.SerializerMethodField()
-    occupied_units = serializers.SerializerMethodField()
-    vacant_units = serializers.SerializerMethodField()
+    total_units = serializers.IntegerField(read_only=True)
+    occupied_units = serializers.IntegerField(read_only=True)
+    vacant_units = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Property
