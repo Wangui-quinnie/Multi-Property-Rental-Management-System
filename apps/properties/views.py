@@ -1,4 +1,5 @@
 from django.db.models import Count, Q
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +18,7 @@ from .serializers import (
     UnitSerializer,
     UnitUpdateSerializer,
 )
+
 
 class PropertyViewSet(ModelViewSet):
 
@@ -55,7 +57,8 @@ class PropertyViewSet(ModelViewSet):
         user = self.request.user
 
         queryset = (
-            property.objects.select_related("landlord")
+            Property.objects
+            .select_related("landlord")
             .annotate(
                 total_units=Count("units"),
                 occupied_units=Count(
@@ -74,7 +77,28 @@ class PropertyViewSet(ModelViewSet):
             return queryset
 
         return queryset.filter(landlord=user)
-    
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return PropertyCreateSerializer
+
+        if self.action in ("update", "partial_update"):
+            return PropertyUpdateSerializer
+
+        return PropertySerializer
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        if user.role == user.Role.ADMIN:
+            serializer.save()
+        else:
+            serializer.save(landlord=user)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+
 class UnitViewSet(ModelViewSet):
 
     permission_classes = [
@@ -85,65 +109,37 @@ class UnitViewSet(ModelViewSet):
     pagination_class = DefaultPagination
 
     def get_queryset(self):
-
         user = self.request.user
 
         queryset = (
             Unit.objects
-            .select_related(
-                "property",
-                "property__landlord",
-            )
+            .select_related("property", "property__landlord")
         )
 
         if user.role == user.Role.ADMIN:
             return queryset
 
-        return queryset.filter(
-            property__landlord=user
-        )
+        return queryset.filter(property__landlord=user)
 
     def get_serializer_class(self):
         if self.action == "create":
-            return PropertyCreateSerializer
+            return UnitCreateSerializer
 
-        if self.action in (
-            "update",
-            "partial_update",
-        ):
-            return PropertyUpdateSerializer
+        if self.action in ("update", "partial_update"):
+            return UnitUpdateSerializer
 
-        return PropertySerializer
-        
+        return UnitSerializer
+
     def perform_create(self, serializer):
-        property = serializer.validated_data["property"]
-
         user = self.request.user
+        property_obj = serializer.validated_data["property"]
 
-        if user.role == user.Role.ADMIN:
-            serializer.save()
-        else:
-            serializer.save(landlord=user)
-        
-        #Prevents malicious requests
-        if (user.role == user.Role.LANDLORD and property.landlord != user):
+        if user.role == user.Role.LANDLORD and property_obj.landlord != user:
             raise PermissionDenied(
                 "You cannot add units to another landlord's property."
             )
+
         serializer.save()
 
     def perform_update(self, serializer):
         serializer.save()
-    
-    def get_serializer_class(self):
-
-        if self.action == "create":
-            return UnitCreateSerializer
-
-        if self.action in (
-            "update",
-            "partial_update",
-        ):
-            return UnitUpdateSerializer
-
-        return UnitSerializer

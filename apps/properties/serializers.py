@@ -4,13 +4,17 @@ from apps.accounts.models import User
 
 from .models import Property, Unit
 
-#read responses(GET)
+
+# ---- Property: read (GET) ----
 class PropertySerializer(serializers.ModelSerializer):
     landlord_name = serializers.CharField(
         source="landlord.get_full_name",
-        read_only=True
+        read_only=True,
     )
 
+    # These arrive pre-computed from get_queryset()'s .annotate() call
+    # in views.py — no method needed, they're just plain attributes
+    # Django attaches to each Property object at query time.
     total_units = serializers.IntegerField(read_only=True)
     occupied_units = serializers.IntegerField(read_only=True)
     vacant_units = serializers.IntegerField(read_only=True)
@@ -32,30 +36,14 @@ class PropertySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-
         read_only_fields = (
             "id",
             "created_at",
             "updated_at",
         )
 
-    def get_total_units(self, obj):
-        return obj.units.count()
 
-    def get_occupied_units(self, obj):
-        return obj.units.filter(
-            status=Unit.Status.OCCUPIED
-    ).count()
-
-
-    def get_vacant_units(self, obj):
-        return obj.units.filter(
-            status=Unit.Status.VACANT
-        ).count()
-    
-
-
-#create
+# ---- Property: create ----
 class PropertyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
@@ -75,7 +63,8 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             )
         return landlord
 
-#update 
+
+# ---- Property: update ----
 class PropertyUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
@@ -86,20 +75,20 @@ class PropertyUpdateSerializer(serializers.ModelSerializer):
             "status",
         )
 
+
+# ---- Unit: read (GET) ----
 class UnitSerializer(serializers.ModelSerializer):
     property_name = serializers.CharField(
         source="property.name",
-        read_only=True
+        read_only=True,
     )
-
     landlord_name = serializers.CharField(
         source="property.landlord.get_full_name",
-        read_only=True
+        read_only=True,
     )
 
     class Meta:
         model = Unit
-
         fields = (
             "id",
             "property",
@@ -113,18 +102,17 @@ class UnitSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-
         read_only_fields = (
             "id",
             "created_at",
             "updated_at",
         )
 
-class UnitCreateSerializer(serializers.ModelSerializer):
 
+# ---- Unit: create ----
+class UnitCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unit
-
         fields = (
             "property",
             "unit_number",
@@ -134,11 +122,11 @@ class UnitCreateSerializer(serializers.ModelSerializer):
             "status",
         )
 
-class UnitUpdateSerializer(serializers.ModelSerializer):
 
+# ---- Unit: update ----
+class UnitUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unit
-
         fields = (
             "unit_type",
             "floor_number",

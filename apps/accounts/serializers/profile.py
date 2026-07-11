@@ -1,15 +1,14 @@
-from django.contrib.auth import authenticate
-from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
+from apps.accounts.models import User
 
-from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
+
         fields = (
             "id",
             "email",
@@ -27,16 +26,21 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name()
 
+
 class ProfileUpdateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
+
         fields = (
             "first_name",
             "last_name",
             "phone_number",
         )
 
+
 class ChangePasswordSerializer(serializers.Serializer):
+
     current_password = serializers.CharField(
         write_only=True
     )
@@ -52,7 +56,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         user = self.context["request"].user
 
-        if not user.check_password(attrs["current_password"]):
+        if not user.check_password(
+            attrs["current_password"]
+        ):
             raise serializers.ValidationError(
                 {
                     "current_password":
@@ -60,7 +66,10 @@ class ChangePasswordSerializer(serializers.Serializer):
                 }
             )
 
-        if attrs["new_password"] != attrs["confirm_password"]:
+        if (
+            attrs["new_password"]
+            != attrs["confirm_password"]
+        ):
             raise serializers.ValidationError(
                 {
                     "confirm_password":
@@ -70,7 +79,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
         validate_password(
             attrs["new_password"],
-            user=user
+            user=user,
         )
 
         return attrs
@@ -85,43 +94,3 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.save()
 
         return user
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-    def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("password")
-
-        user = authenticate(
-            username=email,
-            password=password,
-        )
-
-        if not user:
-            raise serializers.ValidationError(
-                "Invalid email or password."
-            )
-
-        if not user.is_active:
-            raise serializers.ValidationError(
-                "User account is disabled."
-            )
-
-        refresh = RefreshToken.for_user(user)
-
-        return {
-            "user": user,
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
-    
-class LogoutSerializer(serializers.Serializer):
-    refresh = serializers.CharField()
-
-    def save(self):
-        token = RefreshToken(
-            self.validated_data["refresh"]
-        )
-
-        token.blacklist()
