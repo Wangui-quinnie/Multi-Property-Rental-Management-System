@@ -1,7 +1,4 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
-
-from apps.core.api.pagination import DefaultPagination
+from apps.core.api.viewsets import BaseModelViewSet
 from apps.core.api.permissions import IsAdminOrLandlord
 
 from ..selectors import get_units_for_user
@@ -13,14 +10,9 @@ from ..serializers import (
 )
 
 
-class UnitViewSet(ModelViewSet):
+class UnitViewSet(BaseModelViewSet):
 
-    permission_classes = [
-        IsAuthenticated,
-        IsAdminOrLandlord,
-    ]
-
-    pagination_class = DefaultPagination
+    permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlord]
 
     def get_queryset(self):
         return get_units_for_user(self.request.user)

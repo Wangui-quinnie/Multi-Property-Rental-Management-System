@@ -1,9 +1,7 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from apps.core.api.pagination import DefaultPagination
+from apps.core.api.viewsets import BaseModelViewSet
 from apps.core.api.permissions import IsAdminOrLandlord
 
 from ..filters import PropertyFilter
@@ -16,23 +14,12 @@ from ..serializers import (
 )
 
 
-class PropertyViewSet(ModelViewSet):
+class PropertyViewSet(BaseModelViewSet):
 
-    permission_classes = [
-        IsAuthenticated,
-        IsAdminOrLandlord,
-    ]
+    permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlord]
 
-    pagination_class = DefaultPagination
-
-    filter_backends = [
-        DjangoFilterBackend,
-        SearchFilter,
-        OrderingFilter,
-    ]
-
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PropertyFilter
-
     search_fields = ["name", "code", "location"]
     ordering_fields = ["name", "location", "created_at"]
     ordering = ["name"]
