@@ -2,6 +2,9 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from drf_spectacular.utils import extend_schema
+
+
 from apps.core.api.responses import success_response
 from apps.accounts.serializers import (
     LoginSerializer,
@@ -13,6 +16,8 @@ from apps.accounts.serializers import (
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(request=LoginSerializer, responses=UserSerializer)
+    
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -32,6 +37,8 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=LogoutSerializer, responses=None)
 
     def post(self, request):
         serializer = LogoutSerializer(data=request.data)

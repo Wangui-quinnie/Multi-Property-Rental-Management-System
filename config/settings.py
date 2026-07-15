@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
 
     # Local apps
     "apps.accounts.apps.AccountsConfig",
@@ -151,6 +152,8 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
+    
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
@@ -164,6 +167,17 @@ SIMPLE_JWT = {
 }
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Multi-Property Rental Management System API",
+    "DESCRIPTION": "API for managing properties, units, tenants, leases, billing, and payments across a rental portfolio.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "PropertyStatusEnum": "apps.properties.models.Property.Status",
+        "UnitStatusEnum": "apps.properties.models.Unit.Status",
+    },
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
