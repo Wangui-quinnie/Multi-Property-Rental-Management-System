@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -28,13 +29,13 @@ class Lease(TimeStampedUUIDModel):
     rent_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     deposit_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     billing_day = models.PositiveSmallIntegerField(default=1)
     status = models.CharField(

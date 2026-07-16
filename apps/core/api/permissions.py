@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 #Admin only permission class
 class IsAdmin(BasePermission):
@@ -30,3 +30,17 @@ class IsAdminOrLandlord(BasePermission):
             request.user.is_authenticated
             and request.user.is_admin_or_landlord
         )
+# Admin or Landlord write, Tenant read-only permission class
+class IsAdminOrLandlordWriteTenantReadOnly(BasePermission):
+    """
+    View-level gate: write methods require Admin or Landlord.
+    Read methods (GET) are allowed through for any authenticated user;
+    actual visibility (including Tenant-sees-own-only) is enforced by
+    queryset scoping in get_queryset(), not here.
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user.is_admin_or_landlord
