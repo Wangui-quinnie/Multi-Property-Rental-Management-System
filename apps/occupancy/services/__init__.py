@@ -1,0 +1,1 @@
+from .occupancy import activate_occupancy

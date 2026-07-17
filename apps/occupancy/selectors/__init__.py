@@ -1,0 +1,1 @@
+from .occupancy import get_occupancies_for_user

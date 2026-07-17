@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.properties.apps.PropertiesConfig",
     "apps.tenants.apps.TenantsConfig",
     "apps.leases.apps.LeasesConfig",
+    "apps.occupancy.apps.OccupancyConfig",
     "apps.billing.apps.BillingConfig",
     "apps.payments.apps.PaymentsConfig",
     "apps.reports.apps.ReportsConfig",

@@ -1,25 +1,24 @@
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework import mixins
 
 from .pagination import DefaultPagination
 
 
 class BaseModelViewSet(ModelViewSet):
     """
-    Shared defaults for API viewsets across the project.
+    Shared defaults for full-CRUD viewsets.
+    """
+    permission_classes = [IsAuthenticated]
+    pagination_class = DefaultPagination
 
-    Provides:
-      - permission_classes: [IsAuthenticated] (a safe universal floor —
-        every endpoint requires login; nothing is publicly accessible
-        by accident)
-      - pagination_class: DefaultPagination
 
-    Role-specific restrictions (IsAdminOrLandlord, IsTenant, object-level
-    permissions, etc.) are NOT included here — they vary per resource
-    and must be added explicitly on each subclass, e.g.:
-
-        class PropertyViewSet(BaseModelViewSet):
-            permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlord]
+class ReadOnlyBaseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    """
+    Shared defaults for list/retrieve-only viewsets that expose their
+    real mutations through custom @action methods instead of the
+    standard create/update/delete verbs (e.g. Occupancy, which is only
+    ever created via the guarded `activate` action).
     """
     permission_classes = [IsAuthenticated]
     pagination_class = DefaultPagination
