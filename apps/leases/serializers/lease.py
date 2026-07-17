@@ -87,3 +87,10 @@ class LeaseUpdateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         _build_temp_lease_and_clean(instance=self.instance, attrs=attrs)
         return attrs
+
+class LeaseRenewSerializer(serializers.Serializer):
+    new_lease_start_date = serializers.DateField()
+    new_lease_end_date = serializers.DateField(required=False, allow_null=True)
+    rent_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
+    deposit_amount = serializers.DecimalField(max_digits=12, decimal_places=2, default=0)
+    billing_day = serializers.IntegerField(min_value=1, max_value=31)

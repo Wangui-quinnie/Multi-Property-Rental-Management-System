@@ -1,1 +1,1 @@
-from .lease import create_lease, update_lease
+from .lease import create_lease, update_lease, renew_lease

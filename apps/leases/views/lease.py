@@ -1,17 +1,17 @@
+from rest_framework.decorators import action
+
 from apps.core.api.viewsets import BaseModelViewSet
 from apps.core.api.permissions import IsAdminOrLandlordWriteTenantReadOnly
+from apps.core.api.responses import success_response
 
 from ..selectors import get_leases_for_user
-from ..services import create_lease, update_lease
-from ..serializers import LeaseSerializer, LeaseCreateSerializer, LeaseUpdateSerializer
+from ..services import create_lease, update_lease, renew_lease
+from ..serializers import LeaseSerializer, LeaseCreateSerializer, LeaseUpdateSerializer, LeaseRenewSerializer
 
 
 class LeaseViewSet(BaseModelViewSet):
 
     permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlordWriteTenantReadOnly]
-
-    # DELETE disabled deliberately — lease termination is a dedicated
-    # status-transition workflow (roadmap item 5), not a row deletion.
     http_method_names = ["get", "post", "put", "patch", "head", "options"]
 
     def get_queryset(self):
@@ -32,3 +32,22 @@ class LeaseViewSet(BaseModelViewSet):
 
     def perform_update(self, serializer):
         update_lease(serializer=serializer)
+
+    @action(detail=True, methods=["post"], url_path="renew")
+    def renew(self, request, pk=None):
+        current_lease = self.get_object()
+
+        serializer = LeaseRenewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_lease = renew_lease(
+            current_lease=current_lease,
+            user=request.user,
+            **serializer.validated_data,
+        )
+
+        return success_response(
+            data=LeaseSerializer(new_lease).data,
+            message="Lease renewed successfully.",
+            status_code=201,
+        )
