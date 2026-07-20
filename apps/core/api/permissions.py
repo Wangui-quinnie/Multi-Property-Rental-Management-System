@@ -44,3 +44,17 @@ class IsAdminOrLandlordWriteTenantReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         return request.user.is_admin_or_landlord
+
+class IsAdminWriteAuthenticatedReadOnly(BasePermission):
+    """
+    Any authenticated user may read (list/retrieve). Write methods
+    (POST/PUT/PATCH/DELETE) require Admin. Used for shared, system-wide
+    resources like BillingPeriod where everyone needs visibility but
+    only Admin manages the record.
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user.role == request.user.Role.ADMIN

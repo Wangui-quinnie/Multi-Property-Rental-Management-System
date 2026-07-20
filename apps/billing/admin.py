@@ -22,14 +22,13 @@ class BillingPeriodAdmin(admin.ModelAdmin):
         total_created = 0
 
         for billing_period in queryset:
-            invoices = generate_monthly_rent_invoices(billing_period)
+            invoices = generate_monthly_rent_invoices(billing_period, request.user)
             total_created += len(invoices)
 
         self.message_user(
-            request,
-            f"Generated or refreshed {total_created} rent invoice(s)."
-        )
-
+        request,
+        f"Generated or refreshed {total_created} rent invoice(s)."
+      )
     generate_rent_invoices.short_description = "Generate rent invoices for selected billing periods"
 
 @admin.register(Invoice)
