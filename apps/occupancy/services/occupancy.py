@@ -6,6 +6,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.properties.models import Unit
 
 from ..models import Occupancy
+from apps.vacancy.services import close_vacancy_period
 
 
 def activate_occupancy(*, lease, user, move_in_date=None):
@@ -56,5 +57,7 @@ def activate_occupancy(*, lease, user, move_in_date=None):
         )
         unit.status = Unit.Status.OCCUPIED
         unit.save(update_fields=["status"])
+
+        close_vacancy_period(unit=unit, occupied_at=occupancy.move_in_date)
 
     return occupancy

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from ..models import Lease
+from apps.vacancy.services import open_vacancy_period
 
 
 def assert_landlord_owns_unit(*, unit, user):
@@ -115,5 +116,7 @@ def terminate_lease(*, lease, user, termination_date=None):
             unit = lease.unit
             unit.status = Unit.Status.VACANT
             unit.save(update_fields=["status"])
+
+            open_vacancy_period(unit=unit, vacated_at=effective_termination_date)
 
     return lease
