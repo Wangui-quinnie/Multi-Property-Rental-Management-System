@@ -5,8 +5,11 @@ from apps.core.api.permissions import IsAdminOrLandlordWriteTenantReadOnly
 from apps.core.api.responses import success_response
 
 from ..selectors import get_leases_for_user
-from ..services import create_lease, update_lease, renew_lease
-from ..serializers import LeaseSerializer, LeaseCreateSerializer, LeaseUpdateSerializer, LeaseRenewSerializer
+from ..services import create_lease, update_lease, renew_lease, terminate_lease
+from ..serializers import (
+    LeaseSerializer, LeaseCreateSerializer, LeaseUpdateSerializer,
+    LeaseRenewSerializer, LeaseTerminateSerializer,
+)
 
 
 class LeaseViewSet(BaseModelViewSet):
@@ -50,4 +53,22 @@ class LeaseViewSet(BaseModelViewSet):
             data=LeaseSerializer(new_lease).data,
             message="Lease renewed successfully.",
             status_code=201,
+        )
+
+    @action(detail=True, methods=["post"], url_path="terminate")
+    def terminate(self, request, pk=None):
+        lease = self.get_object()
+
+        serializer = LeaseTerminateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        terminated_lease = terminate_lease(
+            lease=lease,
+            user=request.user,
+            termination_date=serializer.validated_data.get("termination_date"),
+        )
+
+        return success_response(
+            data=LeaseSerializer(terminated_lease).data,
+            message="Lease terminated successfully.",
         )

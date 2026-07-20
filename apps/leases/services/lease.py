@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -22,14 +24,7 @@ def update_lease(*, serializer):
     serializer.save()
 
 
-# apps/leases/services/lease.py
 def renew_lease(*, current_lease, new_lease_start_date, rent_amount, deposit_amount, billing_day, user, new_lease_end_date=None):
-    """
-    Ends the current lease and creates a new one linked via
-    renewed_from, preserving each lease term as a distinct historical
-    record. Does NOT touch Occupancy or Unit.status — the tenant
-    hasn't moved, so there's no occupancy event here.
-    """
     if user.role == user.Role.LANDLORD and current_lease.unit.property.landlord != user:
         raise PermissionDenied(
             "You cannot renew a lease for a unit you don't own."
@@ -80,3 +75,45 @@ def renew_lease(*, current_lease, new_lease_start_date, rent_amount, deposit_amo
         new_lease.save()
 
     return new_lease
+
+
+def terminate_lease(*, lease, user, termination_date=None):
+    """
+    Ends a lease and, if the tenant had actually moved in, ends the
+    linked Occupancy and frees the Unit back to VACANT — all atomic.
+    If no Occupancy exists (lease signed but tenant never moved in),
+    only the lease itself is ended; there's nothing to revert on the
+    Unit since this lease never marked it OCCUPIED.
+    """
+    from apps.properties.models import Unit
+    from apps.occupancy.models import Occupancy
+
+    if user.role == user.Role.LANDLORD and lease.unit.property.landlord != user:
+        raise PermissionDenied(
+            "You cannot terminate a lease for a unit you don't own."
+        )
+
+    if lease.status != Lease.Status.ACTIVE:
+        raise ValidationError(
+            {"lease": "Only an ACTIVE lease can be terminated."}
+        )
+
+    effective_termination_date = termination_date or date.today()
+
+    with transaction.atomic():
+        lease.status = Lease.Status.ENDED
+        if not lease.lease_end_date or lease.lease_end_date > effective_termination_date:
+            lease.lease_end_date = effective_termination_date
+        lease.save(update_fields=["status", "lease_end_date"])
+
+        if hasattr(lease, "occupancy") and lease.occupancy.status == Occupancy.Status.ACTIVE:
+            occupancy = lease.occupancy
+            occupancy.status = Occupancy.Status.ENDED
+            occupancy.move_out_date = effective_termination_date
+            occupancy.save(update_fields=["status", "move_out_date"])
+
+            unit = lease.unit
+            unit.status = Unit.Status.VACANT
+            unit.save(update_fields=["status"])
+
+    return lease

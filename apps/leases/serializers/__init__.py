@@ -1,1 +1,4 @@
-from .lease import LeaseSerializer, LeaseCreateSerializer, LeaseUpdateSerializer, LeaseRenewSerializer
+from .lease import (
+    LeaseSerializer, LeaseCreateSerializer, LeaseUpdateSerializer,
+    LeaseRenewSerializer, LeaseTerminateSerializer,
+)

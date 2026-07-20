@@ -94,3 +94,6 @@ class LeaseRenewSerializer(serializers.Serializer):
     rent_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
     deposit_amount = serializers.DecimalField(max_digits=12, decimal_places=2, default=0)
     billing_day = serializers.IntegerField(min_value=1, max_value=31)
+
+class LeaseTerminateSerializer(serializers.Serializer):
+    termination_date = serializers.DateField(required=False)
