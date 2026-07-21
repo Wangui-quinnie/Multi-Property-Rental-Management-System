@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from decimal import Decimal
 
 from apps.core.models import TimeStampedUUIDModel
 from apps.leases.models import Lease
@@ -72,31 +73,31 @@ class Invoice(TimeStampedUUIDModel):
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     tax_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     total_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     amount_paid = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     balance = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     status = models.CharField(
         max_length=30,
@@ -170,19 +171,19 @@ class InvoiceItem(TimeStampedUUIDModel):
         max_digits=12,
         decimal_places=2,
         default=1,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     unit_price = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
 
     class Meta:
@@ -216,29 +217,29 @@ class WaterMeterReading(TimeStampedUUIDModel):
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     current_reading = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     units_consumed = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     rate_per_unit = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(Decimal("0"))]
     )
     reading_date = models.DateField()
     invoice_item = models.OneToOneField(
