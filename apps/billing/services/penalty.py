@@ -7,8 +7,7 @@ from apps.billing.models import Invoice, InvoiceItem
 
 
 def is_invoice_overdue(invoice):
-    return invoice.due_date < date.today() and invoice.balance > 0
-
+    return invoice.is_currently_overdue()
 
 def calculate_late_fee_amount(*, invoice, fee_type, value):
     value = Decimal(str(value))

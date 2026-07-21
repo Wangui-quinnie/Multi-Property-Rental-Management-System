@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from decimal import Decimal
 from django.db.models import Sum
+from django.utils import timezone
 
 from apps.core.models import TimeStampedUUIDModel
 from apps.leases.models import Lease
@@ -41,7 +42,7 @@ class BillingPeriod(TimeStampedUUIDModel):
             raise ValidationError("End date cannot be before start date.")
         if self.due_date < self.start_date:
             raise ValidationError("Due date cannot be before start date.")
-
+   
     def __str__(self):
         return self.name
 
@@ -120,6 +121,9 @@ class Invoice(TimeStampedUUIDModel):
     def clean(self):
         if self.amount_paid > self.total_amount:
             raise ValidationError("Amount paid cannot be greater than total amount.")
+        
+    def is_currently_overdue(self):
+        return self.due_date < timezone.localdate() and self.balance > 0
 
     def refresh_totals(self):
         subtotal = InvoiceItem.objects.filter(invoice=self).aggregate(
@@ -132,6 +136,8 @@ class Invoice(TimeStampedUUIDModel):
 
         if self.balance == 0:
             self.status = self.Status.PAID
+        elif self.is_currently_overdue():
+            self.status = self.Status.OVERDUE
         elif self.amount_paid > 0:
             self.status = self.Status.PARTIALLY_PAID
         else:

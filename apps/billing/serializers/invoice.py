@@ -16,6 +16,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     property_name = serializers.CharField(source="lease.unit.property.name", read_only=True)
     billing_period_name = serializers.CharField(source="billing_period.name", read_only=True)
     items = InvoiceItemSerializer(many=True, read_only=True)
+    is_overdue = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
@@ -23,10 +24,13 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "id", "lease", "tenant_name", "unit_number", "property_name",
             "billing_period", "billing_period_name", "invoice_number",
             "invoice_date", "due_date", "subtotal", "tax_amount",
-            "total_amount", "amount_paid", "balance", "status", "items",
-            "created_at", "updated_at",
+            "total_amount", "amount_paid", "balance", "status", "is_overdue",
+            "items", "created_at", "updated_at",
         )
         read_only_fields = fields
+
+    def get_is_overdue(self, obj):
+        return obj.is_currently_overdue()
 
 
 class GenerateRentInvoicesSerializer(serializers.Serializer):

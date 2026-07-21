@@ -6,7 +6,12 @@ from apps.core.api.responses import success_response
 
 from ..models import BillingPeriod
 from ..selectors import get_invoices_for_user
-from ..services import generate_monthly_rent_invoices, apply_late_fee, apply_late_fees_for_billing_period
+from ..services import (
+    generate_monthly_rent_invoices,
+    apply_late_fee,
+    apply_late_fees_for_billing_period,
+    mark_overdue_invoices,
+)
 from ..serializers import (
     InvoiceSerializer, GenerateRentInvoicesSerializer,
     ApplyLateFeeSerializer, ApplyLateFeesBatchSerializer,
@@ -81,4 +86,13 @@ class InvoiceViewSet(ReadOnlyBaseViewSet):
             data={"late_fees_applied": len(items)},
             message=f"Applied {len(items)} late fee(s).",
             status_code=201,
+        )
+
+    @action(detail=False, methods=["post"], url_path="mark-overdue")
+    def mark_overdue(self, request):
+        updated_count = mark_overdue_invoices(user=request.user)
+
+        return success_response(
+            data={"invoices_marked_overdue": updated_count},
+            message=f"Marked {updated_count} invoice(s) as overdue.",
         )
