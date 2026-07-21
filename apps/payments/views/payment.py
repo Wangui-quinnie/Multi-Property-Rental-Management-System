@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 
 from apps.core.api.viewsets import BaseModelViewSet
-from apps.core.api.permissions import IsAdminOrLandlord
+from apps.core.api.permissions import IsAdminOrLandlordWriteTenantReadOnly
 from apps.core.api.responses import success_response
 
 from apps.billing.models import Invoice
@@ -13,20 +13,22 @@ from ..services import (
     allocate_payment_to_invoice,
     allocate_payment_to_oldest_invoices,
     remove_allocation,
+    get_receipt_data,
 )
-from ..serializers import PaymentSerializer, PaymentCreateSerializer, AllocateToInvoiceSerializer
+from ..serializers import PaymentSerializer, PaymentCreateSerializer, AllocateToInvoiceSerializer, ReceiptSerializer
 
 
 class PaymentViewSet(BaseModelViewSet):
     """
     Create + read only — Payments are immutable financial records
-    once created (no update/destroy). Individual misallocations can
-    be corrected via the remove-allocation action without touching
-    the Payment itself.
+    once created (no update/destroy). Admin and Landlord have full
+    access; Tenant has read-only access (list/retrieve/receipt) to
+    their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+    plus the existing queryset scoping in get_payments_for_user.
     """
 
     http_method_names = ["get", "post", "head", "options"]
-    permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlord]
+    permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlordWriteTenantReadOnly]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
@@ -89,4 +91,15 @@ class PaymentViewSet(BaseModelViewSet):
         return success_response(
             data=PaymentSerializer(payment).data,
             message="Allocation removed.",
+        )
+
+    @action(detail=True, methods=["get"], url_path="receipt")
+    def receipt(self, request, pk=None):
+        payment = self.get_object()
+
+        data = get_receipt_data(payment=payment)
+
+        return success_response(
+            data=ReceiptSerializer(data).data,
+            message="Receipt retrieved successfully.",
         )

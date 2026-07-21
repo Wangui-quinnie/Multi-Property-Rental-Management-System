@@ -5,3 +5,4 @@ from .payment import (
     AllocateToInvoiceSerializer,
 )
 from .mpesa import InitiateStkPushSerializer, MpesaTransactionSerializer, MpesaCallbackSerializer
+from .receipt import ReceiptSerializer
