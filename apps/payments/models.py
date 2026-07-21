@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
+from decimal import Decimal
+from django.db.models import Sum
 
 from apps.billing.models import Invoice
 from apps.core.models import TimeStampedUUIDModel
@@ -35,7 +37,7 @@ class Payment(TimeStampedUUIDModel):
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)]
+        validators=[MinValueValidator(Decimal("0.01"))]
     )
     payment_date = models.DateTimeField()
     status = models.CharField(
@@ -74,7 +76,7 @@ class PaymentAllocation(TimeStampedUUIDModel):
     amount_allocated = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)]
+        validators=[MinValueValidator(Decimal("0.01"))]
     )
 
     class Meta:
@@ -92,12 +94,19 @@ class PaymentAllocation(TimeStampedUUIDModel):
         ]
 
     def clean(self):
+        
         if self.invoice.lease.tenant_id != self.payment.tenant_id:
             raise ValidationError("Payment tenant must match invoice tenant.")
 
         if self.amount_allocated > self.invoice.balance:
             raise ValidationError("Allocation cannot exceed invoice balance.")
 
+        already_allocated = self.payment.allocations.exclude(pk=self.pk).aggregate(
+            total=Sum("amount_allocated")
+        )["total"] or Decimal("0")
+
+        if already_allocated + self.amount_allocated > self.payment.amount:
+            raise ValidationError("Total allocations cannot exceed the payment amount.")
     def save(self, *args, **kwargs):
         self.full_clean()
 
@@ -114,21 +123,8 @@ class PaymentAllocation(TimeStampedUUIDModel):
         )
 
         invoice.amount_paid = total_allocated
-        invoice.balance = invoice.total_amount - invoice.amount_paid
-
-        if invoice.balance == 0:
-            invoice.status = Invoice.Status.PAID
-        elif invoice.amount_paid > 0:
-            invoice.status = Invoice.Status.PARTIALLY_PAID
-        else:
-            invoice.status = Invoice.Status.UNPAID
-
-        invoice.save(update_fields=[
-            "amount_paid",
-            "balance",
-            "status",
-            "updated_at",
-        ])
+        invoice.save(update_fields=["amount_paid", "updated_at"])
+        invoice.refresh_totals()
 
     def __str__(self):
         return f"{self.payment} -> {self.invoice}"
