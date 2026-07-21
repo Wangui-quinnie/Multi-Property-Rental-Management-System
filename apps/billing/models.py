@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from decimal import Decimal
+from django.db.models import Sum
 
 from apps.core.models import TimeStampedUUIDModel
 from apps.leases.models import Lease
@@ -121,7 +122,10 @@ class Invoice(TimeStampedUUIDModel):
             raise ValidationError("Amount paid cannot be greater than total amount.")
 
     def refresh_totals(self):
-        subtotal = sum(item.amount for item in self.items.all())
+        subtotal = InvoiceItem.objects.filter(invoice=self).aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0")
+
         self.subtotal = subtotal
         self.total_amount = subtotal + self.tax_amount
         self.balance = self.total_amount - self.amount_paid

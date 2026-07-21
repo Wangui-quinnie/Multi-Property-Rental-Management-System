@@ -6,16 +6,14 @@ from apps.core.api.responses import success_response
 
 from ..models import BillingPeriod
 from ..selectors import get_invoices_for_user
-from ..services import generate_monthly_rent_invoices
-from ..serializers import InvoiceSerializer, GenerateRentInvoicesSerializer
+from ..services import generate_monthly_rent_invoices, apply_late_fee, apply_late_fees_for_billing_period
+from ..serializers import (
+    InvoiceSerializer, GenerateRentInvoicesSerializer,
+    ApplyLateFeeSerializer, ApplyLateFeesBatchSerializer,
+)
 
 
 class InvoiceViewSet(ReadOnlyBaseViewSet):
-    """
-    Read-only — Invoices are only ever created via the generate-rent
-    action (and, in step 2, a water-charge action), never directly
-    through this API.
-    """
 
     serializer_class = InvoiceSerializer
 
@@ -39,5 +37,48 @@ class InvoiceViewSet(ReadOnlyBaseViewSet):
         return success_response(
             data=InvoiceSerializer(invoices, many=True).data,
             message=f"Generated or refreshed {len(invoices)} invoice(s).",
+            status_code=201,
+        )
+
+    @action(detail=True, methods=["post"], url_path="apply-late-fee")
+    def apply_late_fee_action(self, request, pk=None):
+        invoice = self.get_object()
+
+        serializer = ApplyLateFeeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        apply_late_fee(
+            invoice=invoice,
+            user=request.user,
+            fee_type=serializer.validated_data["fee_type"],
+            value=serializer.validated_data["value"],
+        )
+
+        invoice.refresh_from_db()
+        return success_response(
+            data=InvoiceSerializer(invoice).data,
+            message="Late fee applied.",
+            status_code=201,
+        )
+
+    @action(detail=False, methods=["post"], url_path="apply-late-fees")
+    def apply_late_fees_batch(self, request):
+        serializer = ApplyLateFeesBatchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        billing_period = get_object_or_404(
+            BillingPeriod, pk=serializer.validated_data["billing_period"]
+        )
+
+        items = apply_late_fees_for_billing_period(
+            billing_period=billing_period,
+            user=request.user,
+            fee_type=serializer.validated_data["fee_type"],
+            value=serializer.validated_data["value"],
+        )
+
+        return success_response(
+            data={"late_fees_applied": len(items)},
+            message=f"Applied {len(items)} late fee(s).",
             status_code=201,
         )
