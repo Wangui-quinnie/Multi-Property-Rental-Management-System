@@ -1,3 +1,4 @@
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 
@@ -14,6 +15,7 @@ from ..services import (
     allocate_payment_to_oldest_invoices,
     remove_allocation,
     get_receipt_data,
+    render_receipt_pdf,
 )
 from ..serializers import PaymentSerializer, PaymentCreateSerializer, AllocateToInvoiceSerializer, ReceiptSerializer
 
@@ -103,3 +105,16 @@ class PaymentViewSet(BaseModelViewSet):
             data=ReceiptSerializer(data).data,
             message="Receipt retrieved successfully.",
         )
+    @action(detail=True, methods=["get"], url_path="receipt/pdf")
+    def receipt_pdf(self, request, pk=None):
+        payment = self.get_object()
+
+        pdf_buffer = render_receipt_pdf(payment=payment)
+
+        response = FileResponse(
+            pdf_buffer,
+            as_attachment=True,
+            filename=f"receipt_{payment.payment_reference}.pdf",
+            content_type="application/pdf",
+        )
+        return response
