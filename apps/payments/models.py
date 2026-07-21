@@ -128,3 +128,52 @@ class PaymentAllocation(TimeStampedUUIDModel):
 
     def __str__(self):
         return f"{self.payment} -> {self.invoice}"
+
+class MpesaTransaction(TimeStampedUUIDModel):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.PROTECT,
+        related_name="mpesa_transactions"
+    )
+    phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("1"))]
+    )
+    checkout_request_id = models.CharField(max_length=100, unique=True)
+    merchant_request_id = models.CharField(max_length=100, blank=True)
+    mpesa_receipt_number = models.CharField(max_length=50, blank=True)
+    result_code = models.CharField(max_length=10, blank=True)
+    result_description = models.CharField(max_length=255, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True
+    )
+    payment = models.OneToOneField(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="mpesa_transaction"
+    )
+
+    class Meta:
+        verbose_name = "M-Pesa Transaction"
+        verbose_name_plural = "M-Pesa Transactions"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["tenant", "status"]),
+            models.Index(fields=["checkout_request_id"]),
+        ]
+
+    def __str__(self):
+        return f"{self.checkout_request_id} - {self.status}"

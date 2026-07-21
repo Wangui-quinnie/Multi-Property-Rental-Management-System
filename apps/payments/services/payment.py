@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.leases.models import Lease
+from apps.billing.models import Invoice
+
 
 from ..models import Payment, PaymentAllocation
 
@@ -44,11 +46,15 @@ def allocate_payment_to_invoice(*, payment, invoice, amount, user):
     return allocation
 
 
-def allocate_payment_to_oldest_invoices(*, payment, user):
-    from apps.billing.models import Invoice
-
-    assert_landlord_manages_tenant(tenant=payment.tenant, user=user)
-
+def _allocate_payment_to_oldest_invoices_core(*, payment):
+    """
+    The actual allocation logic, with no permission check. Called by:
+      - allocate_payment_to_oldest_invoices() below, after it verifies
+        the requesting human is allowed to act on this payment
+      - process_stk_callback() in mpesa.py, which has no human user at
+        all — it's triggered by a verified Safaricom callback, not a
+        request a permission check makes sense against
+    """
     already_allocated = sum(a.amount_allocated for a in payment.allocations.all())
     remaining_amount = payment.amount - already_allocated
 
@@ -75,6 +81,14 @@ def allocate_payment_to_oldest_invoices(*, payment, user):
 
     return allocations
 
+
+def allocate_payment_to_oldest_invoices(*, payment, user):
+    """
+    Human/API entry point — verifies the requesting user is allowed
+    to act on this payment before delegating to the core logic.
+    """
+    assert_landlord_manages_tenant(tenant=payment.tenant, user=user)
+    return _allocate_payment_to_oldest_invoices_core(payment=payment)
 
 def remove_allocation(*, allocation, user):
     """

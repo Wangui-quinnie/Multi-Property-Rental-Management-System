@@ -181,6 +181,14 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
+MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY", default="")
+MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET", default="")
+MPESA_SHORTCODE = config("MPESA_SHORTCODE", default="174379")  # Safaricom's shared sandbox shortcode
+MPESA_PASSKEY = config("MPESA_PASSKEY", default="")
+MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL", default="")
+MPESA_BASE_URL = config("MPESA_BASE_URL", default="https://sandbox.safaricom.co.ke")
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "accounts.User"
