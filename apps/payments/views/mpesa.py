@@ -4,6 +4,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from drf_spectacular.utils import extend_schema
+
 from apps.core.api.viewsets import ReadOnlyBaseViewSet
 from apps.core.api.responses import success_response, error_response
 from rest_framework.exceptions import ValidationError
@@ -49,11 +51,11 @@ class MpesaTransactionViewSet(ReadOnlyBaseViewSet):
             status_code=201,
         )
 
-
 class MpesaCallbackView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
 
+    @extend_schema(request=MpesaCallbackSerializer, responses=None, exclude=True)
     def post(self, request):
         body = request.data.get("Body", {}).get("stkCallback", request.data)
 

@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from apps.core.api.viewsets import BaseModelViewSet
 from apps.core.api.permissions import IsAdminOrLandlordWriteTenantReadOnly
 from apps.core.api.responses import success_response
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from apps.billing.models import Invoice
 
@@ -82,6 +83,17 @@ class PaymentViewSet(BaseModelViewSet):
             message=f"Allocated to {len(allocations)} invoice(s).",
             status_code=201,
         )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="allocation_id",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="UUID of the PaymentAllocation to remove.",
+            )
+        ]
+    )
 
     @action(detail=True, methods=["post"], url_path="allocations/(?P<allocation_id>[^/.]+)/remove")
     def remove_allocation_action(self, request, pk=None, allocation_id=None):

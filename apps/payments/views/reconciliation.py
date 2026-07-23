@@ -1,5 +1,7 @@
 from rest_framework.views import APIView
 
+from drf_spectacular.utils import extend_schema
+
 from apps.core.api.permissions import IsAdminOrLandlord
 from apps.core.api.responses import success_response
 
@@ -10,6 +12,7 @@ from ..serializers import ReconciliationDashboardSerializer
 class ReconciliationDashboardView(APIView):
     permission_classes = [IsAdminOrLandlord]
 
+    @extend_schema(responses=ReconciliationDashboardSerializer)
     def get(self, request):
         data = get_reconciliation_dashboard(request.user)
 

@@ -2,6 +2,8 @@ from datetime import datetime
 
 from rest_framework.views import APIView
 
+from drf_spectacular.utils import extend_schema
+
 from apps.core.api.permissions import IsAdminOrLandlord
 from apps.core.api.responses import success_response
 
@@ -23,6 +25,7 @@ def _parse_date(value):
 class RentReportView(APIView):
     permission_classes = [IsAdminOrLandlord]
 
+    @extend_schema(responses=RentReportSerializer)
     def get(self, request):
         data = get_rent_billed_vs_collected(
             request.user,
@@ -35,6 +38,7 @@ class RentReportView(APIView):
 class WaterReportView(APIView):
     permission_classes = [IsAdminOrLandlord]
 
+    @extend_schema(responses=WaterReportSerializer)
     def get(self, request):
         data = get_water_billing_summary(
             request.user,
@@ -47,6 +51,7 @@ class WaterReportView(APIView):
 class CashFlowReportView(APIView):
     permission_classes = [IsAdminOrLandlord]
 
+    @extend_schema(responses=CashFlowEntrySerializer(many=True))
     def get(self, request):
         months = int(request.query_params.get("months", 6))
         data = get_cash_flow_trend(request.user, months=months)
@@ -59,6 +64,7 @@ class CashFlowReportView(APIView):
 class LandlordSummaryView(APIView):
     permission_classes = [IsAdminOrLandlord]
 
+    @extend_schema(responses=None)
     def get(self, request):
         data = get_landlord_summary(
             request.user,

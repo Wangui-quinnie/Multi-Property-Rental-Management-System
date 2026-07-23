@@ -1,6 +1,8 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from apps.accounts.models import User
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,6 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         read_only_fields = fields
 
+    @extend_schema_field(serializers.CharField())
     def get_full_name(self, obj):
         return obj.get_full_name()
 

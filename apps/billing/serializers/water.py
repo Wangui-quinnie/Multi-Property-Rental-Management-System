@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
+from drf_spectacular.utils import extend_schema_field
 from ..models import WaterMeterReading
 
 
@@ -46,6 +47,7 @@ class WaterMeterReadingSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+    @extend_schema_field(serializers.BooleanField())
     def get_is_billed(self, obj):
         return obj.invoice_item_id is not None
 

@@ -178,6 +178,15 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "PropertyStatusEnum": "apps.properties.models.Property.Status",
         "UnitStatusEnum": "apps.properties.models.Unit.Status",
+        "TenantStatusEnum": "apps.tenants.models.Tenant.Status",
+        "LeaseStatusEnum": "apps.leases.models.Lease.Status",
+        "OccupancyStatusEnum": "apps.occupancy.models.Occupancy.Status",
+        "BillingPeriodStatusEnum": "apps.billing.models.BillingPeriod.Status",
+        "InvoiceStatusEnum": "apps.billing.models.Invoice.Status",
+        "InvoiceItemTypeEnum": "apps.billing.models.InvoiceItem.ItemType",
+        "PaymentStatusEnum": "apps.payments.models.Payment.Status",
+        "PaymentMethodEnum": "apps.payments.models.Payment.Method",
+        "MpesaTransactionStatusEnum": "apps.payments.models.MpesaTransaction.Status",
     },
 }
 
