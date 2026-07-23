@@ -7,7 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include("apps.accounts.urls")),
     path("api/properties/", include("apps.properties.urls")),
-    path("reports/", include("apps.reports.urls")),
+    path("api/reports/", include("apps.reports.urls")),
     path("api/tenants/", include("apps.tenants.urls")),
     path("api/leases/", include("apps.leases.urls")),
     path("api/occupancy/", include("apps.occupancy.urls")),
