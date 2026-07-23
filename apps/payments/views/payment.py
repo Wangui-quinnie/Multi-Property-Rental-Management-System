@@ -16,6 +16,7 @@ from ..services import (
     remove_allocation,
     get_receipt_data,
     render_receipt_pdf,
+    reconcile_payment
 )
 from ..serializers import PaymentSerializer, PaymentCreateSerializer, AllocateToInvoiceSerializer, ReceiptSerializer
 
@@ -118,3 +119,15 @@ class PaymentViewSet(BaseModelViewSet):
             content_type="application/pdf",
         )
         return response
+    
+    @action(detail=True, methods=["post"], url_path="reconcile")
+    def reconcile(self, request, pk=None):
+        payment = self.get_object()
+
+        reconcile_payment(payment=payment, user=request.user)
+
+        payment.refresh_from_db()
+        return success_response(
+            data=PaymentSerializer(payment).data,
+            message="Payment reconciled.",
+        )

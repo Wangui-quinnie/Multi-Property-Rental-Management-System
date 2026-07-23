@@ -21,12 +21,14 @@ class PaymentSerializer(serializers.ModelSerializer):
     allocations = PaymentAllocationSerializer(many=True, read_only=True)
     total_allocated = serializers.SerializerMethodField()
     unallocated_amount = serializers.SerializerMethodField()
+    reconciled_by_name = serializers.CharField(source="reconciled_by.get_full_name", read_only=True, default=None)
 
     class Meta:
         model = Payment
         fields = (
             "id", "tenant", "tenant_name", "payment_reference", "payment_method",
             "amount", "payment_date", "status", "notes",
+            "is_reconciled", "reconciled_at", "reconciled_by_name",
             "allocations", "total_allocated", "unallocated_amount",
             "created_at", "updated_at",
         )
@@ -37,7 +39,6 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     def get_unallocated_amount(self, obj):
         return obj.amount - self.get_total_allocated(obj)
-
 
 class PaymentCreateSerializer(serializers.ModelSerializer):
     class Meta:
