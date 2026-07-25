@@ -20,6 +20,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/landlords/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Admin-only reference list of Landlord users, used to populate the
+         *     landlord picker when an Admin creates a Property on someone else's
+         *     behalf (PropertyCreateSerializer.landlord). Landlords never need
+         *     this list themselves — they're auto-assigned as the owner.
+         *
+         *     Deliberately unpaginated: this is a lookup/reference list for a
+         *     picker, not a browsable collection.
+         */
+        get: operations["auth_landlords_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login/": {
         parameters: {
             query?: never;
@@ -1194,6 +1219,18 @@ export interface components {
          * @enum {string}
          */
         InvoiceStatusEnum: "DRAFT" | "UNPAID" | "PARTIALLY_PAID" | "PAID" | "OVERDUE" | "CANCELLED";
+        /**
+         * @description Minimal, read-only shape for landlord picker/reference lists
+         *     (e.g. the Admin "create property" form). Deliberately excludes
+         *     anything beyond what a picker needs.
+         */
+        LandlordList: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly full_name: string;
+            /** Format: email */
+            readonly email: string;
+        };
         /** @description Read serializer — list/retrieve. */
         Lease: {
             /** Format: uuid */
@@ -1960,6 +1997,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    auth_landlords_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LandlordList"][];
+                };
             };
         };
     };

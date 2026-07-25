@@ -7,3 +7,7 @@ from .profile import (
     ProfileView,
     ChangePasswordView,
 )
+
+from .landlord import (
+    LandlordListView,
+)

@@ -8,3 +8,7 @@ from .profile import (
     ProfileUpdateSerializer,
     ChangePasswordSerializer,
 )
+
+from .landlord import (
+    LandlordListSerializer,
+)
