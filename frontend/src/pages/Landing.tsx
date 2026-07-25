@@ -31,8 +31,8 @@ export function Landing() {
     <div className="min-h-screen bg-white">
       <header className="flex items-center justify-between border-b px-6 py-4">
         <span className="text-lg font-semibold">Rental Management</span>
-        <Button asChild variant="outline">
-          <Link to="/login">Sign in</Link>
+        <Button variant="outline" nativeButton={false} render={<Link to="/login" />}>
+          Sign in
         </Button>
       </header>
 
@@ -45,8 +45,8 @@ export function Landing() {
           leases, billing, and payments, without the spreadsheets.
         </p>
         <div className="mt-10">
-          <Button asChild size="lg">
-            <Link to="/login">Get started</Link>
+          <Button size="lg" nativeButton={false} render={<Link to="/login" />}>
+            Get started
           </Button>
         </div>
       </section>
