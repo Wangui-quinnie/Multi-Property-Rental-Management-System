@@ -1,11 +1,17 @@
 from django.contrib import admin
 from django.urls import include, path
 from django.http import JsonResponse
-
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("health/", health_check, name="health-check"),
+
     path("api/auth/", include("apps.accounts.urls")),
     path("api/properties/", include("apps.properties.urls")),
     path("api/reports/", include("apps.reports.urls")),
@@ -20,14 +26,4 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-]
-
-from django.http import JsonResponse
-
-def health_check(request):
-    return JsonResponse({"status": "ok"})
-
-urlpatterns = [
-    path("health/", health_check, name="health-check"),
-    # ... existing patterns
 ]

@@ -1,0 +1,22 @@
+import { Outlet } from "react-router-dom";
+import { useAuth } from "@/auth/useAuth";
+import { Button } from "@/components/ui/button";
+
+export function TenantLayout() {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="flex items-center justify-between border-b bg-white px-6 py-4">
+        <h1 className="text-lg font-semibold">Tenant Portal</h1>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-slate-600">{user?.full_name || user?.email}</span>
+          <Button variant="outline" size="sm" onClick={logout}>Logout</Button>
+        </div>
+      </header>
+      <main className="p-6">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
