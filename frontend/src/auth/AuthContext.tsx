@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, type ReactNode } from "react";
 import { apiClient } from "../api/client";
 
 export type Role = "ADMIN" | "LANDLORD" | "TENANT";

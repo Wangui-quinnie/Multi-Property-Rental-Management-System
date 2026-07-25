@@ -17,10 +17,13 @@ describe("ErrorPage", () => {
 
   it("calls onReset when the reload button is clicked", async () => {
     // jsdom doesn't implement real navigation; stub it so clicking Reload
-    // doesn't spam "Not implemented" console noise.
-    // @ts-expect-error - jsdom location is not fully implemented
-    delete window.location;
-    window.location = { href: "" } as Location;
+    // doesn't spam "Not implemented" console noise. Object.defineProperty
+    // (rather than a direct assignment) sidesteps window.location's setter
+    // type (`string & Location`), which no cast satisfies cleanly.
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: { href: "" },
+    });
 
     const onReset = vi.fn();
     const user = userEvent.setup();

@@ -9,6 +9,11 @@ import { NotFound } from "@/pages/NotFound";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { TenantLayout } from "@/layouts/TenantLayout";
 import { Toaster } from "@/components/ui/toast";
+import { PropertiesPage } from "@/pages/properties/PropertiesPage";
+import { PropertyCreatePage } from "@/pages/properties/PropertyCreatePage";
+import { PropertyDetailPage } from "@/pages/properties/PropertyDetailPage";
+import { PropertyEditPage } from "@/pages/properties/PropertyEditPage";
+import { UnitsPage } from "@/pages/units/UnitsPage";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +30,11 @@ export default function App() {
             <Route element={<ProtectedRoute allowedRoles={["ADMIN", "LANDLORD"]} />}>
               <Route element={<AdminLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/properties" element={<PropertiesPage />} />
+                <Route path="/properties/new" element={<PropertyCreatePage />} />
+                <Route path="/properties/:id" element={<PropertyDetailPage />} />
+                <Route path="/properties/:id/edit" element={<PropertyEditPage />} />
+                <Route path="/units" element={<UnitsPage />} />
               </Route>
             </Route>
 
