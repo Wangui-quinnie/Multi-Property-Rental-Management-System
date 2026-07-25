@@ -7,6 +7,7 @@ import { Login } from "@/pages/auth/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { TenantLayout } from "@/layouts/TenantLayout";
+import { Toaster } from "@/components/ui/toast";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
+          <Toaster />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />

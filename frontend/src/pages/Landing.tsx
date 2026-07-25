@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, Receipt, BarChart3 } from "lucide-react";
 
+
 const features = [
   {
     icon: Building2,
@@ -50,7 +51,7 @@ export function Landing() {
           </Button>
         </div>
       </section>
-
+      
       <section className="mx-auto max-w-5xl px-6 pb-24">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {features.map((feature) => (
@@ -66,7 +67,7 @@ export function Landing() {
           ))}
         </div>
       </section>
-
+      
       <footer className="border-t px-6 py-6 text-center text-sm text-slate-500">
         Multi-Property Rental Management System
       </footer>
