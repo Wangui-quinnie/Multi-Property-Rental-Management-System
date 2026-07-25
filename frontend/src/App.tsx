@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/auth/ProtectedRoute";
 import { Landing } from "@/pages/Landing";
 import { Login } from "@/pages/auth/Login";
 import { Dashboard } from "@/pages/Dashboard";
+import { NotFound } from "@/pages/NotFound";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { TenantLayout } from "@/layouts/TenantLayout";
 import { Toaster } from "@/components/ui/toast";
@@ -32,6 +33,8 @@ export default function App() {
                 <Route path="/portal" element={<Dashboard />} />
               </Route>
             </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

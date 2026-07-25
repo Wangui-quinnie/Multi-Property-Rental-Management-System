@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/auth/useAuth";
 import { Button } from "@/components/ui/button";
+import { SidebarNav } from "@/components/shared/SidebarNav";
+import { getNavItems } from "@/config/navigation";
 
 export function TenantLayout() {
   const { user, logout } = useAuth();
@@ -14,9 +16,14 @@ export function TenantLayout() {
           <Button variant="outline" size="sm" onClick={logout}>Logout</Button>
         </div>
       </header>
-      <main className="p-6">
-        <Outlet />
-      </main>
+      <div className="flex">
+        <aside className="hidden w-56 shrink-0 border-r bg-white md:block">
+          <SidebarNav items={getNavItems(user?.role)} />
+        </aside>
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
