@@ -8,6 +8,11 @@ from ..serializers import TenantSerializer, TenantCreateSerializer, TenantUpdate
 class TenantViewSet(BaseModelViewSet):
 
     permission_classes = BaseModelViewSet.permission_classes + [IsAdmin]
+    # Backs the ?search= param already advertised in the OpenAPI schema
+    # via the project-wide SearchFilter backend (config/settings.py) -
+    # without this, search was a silent no-op since SearchFilter reads
+    # search_fields off the view.
+    search_fields = ["user__email", "user__first_name", "user__last_name", "national_id"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

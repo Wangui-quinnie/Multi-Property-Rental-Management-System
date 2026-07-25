@@ -14,14 +14,20 @@ describe("getNavItems", () => {
     ]);
   });
 
-  it("returns the Landlord nav set: Admin's items plus Units and Leases", () => {
-    const adminLabels = getNavItems("ADMIN").map((i) => i.label);
-    const landlordLabels = getNavItems("LANDLORD").map((i) => i.label);
-
-    adminLabels.forEach((label) => expect(landlordLabels).toContain(label));
-    expect(landlordLabels).toContain("Units");
-    expect(landlordLabels).toContain("Leases");
-    expect(landlordLabels.length).toBe(adminLabels.length + 2);
+  it("returns the Landlord nav set (Admin's minus Tenants, plus Units and Leases)", () => {
+    // Tenants is deliberately excluded here - TenantViewSet is Admin-only
+    // (IsAdmin, not IsAdminOrLandlord), so a Landlord nav link to it
+    // would just redirect them away.
+    const labels = getNavItems("LANDLORD").map((i) => i.label);
+    expect(labels).toEqual([
+      "Dashboard",
+      "Properties",
+      "Units",
+      "Leases",
+      "Billing",
+      "Payments",
+      "Reports",
+    ]);
   });
 
   it("returns the Tenant nav set", () => {

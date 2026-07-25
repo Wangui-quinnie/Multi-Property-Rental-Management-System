@@ -14,6 +14,8 @@ import { PropertyCreatePage } from "@/pages/properties/PropertyCreatePage";
 import { PropertyDetailPage } from "@/pages/properties/PropertyDetailPage";
 import { PropertyEditPage } from "@/pages/properties/PropertyEditPage";
 import { UnitsPage } from "@/pages/units/UnitsPage";
+import { TenantsPage } from "@/pages/tenants/TenantsPage";
+import { TenantCreatePage } from "@/pages/tenants/TenantCreatePage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,16 @@ export default function App() {
                 <Route path="/properties/:id" element={<PropertyDetailPage />} />
                 <Route path="/properties/:id/edit" element={<PropertyEditPage />} />
                 <Route path="/units" element={<UnitsPage />} />
+              </Route>
+            </Route>
+
+            {/* Tenants is Admin-only (TenantViewSet uses IsAdmin, not
+                IsAdminOrLandlord) - a separate route group rather than
+                folding it into the Admin+Landlord group above. */}
+            <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/tenants" element={<TenantsPage />} />
+                <Route path="/tenants/new" element={<TenantCreatePage />} />
               </Route>
             </Route>
 

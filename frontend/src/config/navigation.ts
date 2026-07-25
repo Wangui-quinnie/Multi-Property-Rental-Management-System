@@ -30,11 +30,12 @@ const adminNav: NavItem[] = [
 
 // Same as Admin, plus Units and Leases (Landlord manages the physical
 // property + lease lifecycle directly; Admin oversees at a higher level).
+// Deliberately excludes Tenants - TenantViewSet is Admin-only (IsAdmin),
+// so a Landlord following this link would just get redirected away.
 const landlordNav: NavItem[] = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { label: "Properties", to: "/properties", icon: Building2 },
   { label: "Units", to: "/units", icon: DoorOpen },
-  { label: "Tenants", to: "/tenants", icon: Users },
   { label: "Leases", to: "/leases", icon: ScrollText },
   { label: "Billing", to: "/billing", icon: Receipt },
   { label: "Payments", to: "/payments", icon: CreditCard },

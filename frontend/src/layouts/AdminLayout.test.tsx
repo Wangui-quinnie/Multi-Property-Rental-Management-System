@@ -54,6 +54,9 @@ describe("AdminLayout", () => {
 
     expect(screen.getByRole("link", { name: /units/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /leases/i })).toBeInTheDocument();
+    // Tenants is Admin-only - a Landlord nav link to it would just
+    // redirect them away, so it must not appear in their sidebar.
+    expect(screen.queryByRole("link", { name: /tenants/i })).not.toBeInTheDocument();
   });
 
   it("displays the user's name/email and role, and logs out on click", async () => {
