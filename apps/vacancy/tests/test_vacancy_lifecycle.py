@@ -94,6 +94,41 @@ class TestVacancyLifecycle:
 
         assert VacancyPeriod.objects.filter(unit=unit, occupied_at__isnull=True).count() == 1
 
+    def test_activating_occupancy_with_move_in_date_before_vacated_rejected(self, authenticated_client):
+        """
+        Regression guard: activate_occupancy's move_in_date reaches
+        close_vacancy_period() as the VacancyPeriod's occupied_at with
+        no prior cross-check - a move_in_date earlier than when the
+        unit actually went vacant used to silently create a negative-
+        duration VacancyPeriod, which dragged the portfolio's average
+        vacancy duration negative (caught via the Reports page).
+        """
+        from datetime import timedelta
+
+        landlord = LandlordUserFactory()
+        unit = UnitFactory(property=PropertyFactory(landlord=landlord), status=Unit.Status.VACANT)
+
+        first_lease = LeaseFactory(unit=unit, status=Lease.Status.ACTIVE, lease_end_date=None)
+        activate_occupancy(lease=first_lease, user=landlord)
+        terminate_lease(lease=first_lease, user=landlord)  # vacated_at = today
+
+        period = VacancyPeriod.objects.get(unit=unit)
+        assert period.is_open
+
+        second_lease = LeaseFactory(unit=unit, status=Lease.Status.ACTIVE, lease_end_date=None)
+
+        from rest_framework.exceptions import ValidationError
+
+        with pytest.raises(ValidationError):
+            activate_occupancy(
+                lease=second_lease,
+                user=landlord,
+                move_in_date=period.vacated_at - timedelta(days=25),
+            )
+
+        period.refresh_from_db()
+        assert period.is_open  # rejected before the period was closed
+
     def test_closing_with_no_open_period_is_noop(self, authenticated_client):
         """
         A unit's very first-ever occupancy has no prior vacancy to

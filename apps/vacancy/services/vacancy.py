@@ -1,3 +1,5 @@
+from rest_framework.exceptions import ValidationError
+
 from ..models import VacancyPeriod
 
 
@@ -22,6 +24,12 @@ def close_vacancy_period(*, unit, occupied_at):
     open_period = VacancyPeriod.objects.filter(unit=unit, occupied_at__isnull=True).first()
     if open_period is None:
         return None
+
+    if occupied_at < open_period.vacated_at:
+        raise ValidationError(
+            {"move_in_date": "Move-in date cannot be before the unit became vacant "
+                              f"({open_period.vacated_at})."}
+        )
 
     open_period.occupied_at = occupied_at
     open_period.save(update_fields=["occupied_at"])

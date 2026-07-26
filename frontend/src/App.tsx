@@ -22,6 +22,7 @@ import { LeaseEditPage } from "@/pages/leases/LeaseEditPage";
 import { VacancyPage } from "@/pages/vacancy/VacancyPage";
 import { BillingPage } from "@/pages/billing/BillingPage";
 import { PaymentsPage } from "@/pages/payments/PaymentsPage";
+import { ReportsPage } from "@/pages/reports/ReportsPage";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ export default function App() {
                 <Route path="/vacancy" element={<VacancyPage />} />
                 <Route path="/billing" element={<BillingPage />} />
                 <Route path="/payments" element={<PaymentsPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
               </Route>
             </Route>
 
