@@ -21,6 +21,11 @@ from ..serializers import (
 class InvoiceViewSet(ReadOnlyBaseViewSet):
 
     serializer_class = InvoiceSerializer
+    # Exact-match filters (django_filters.rest_framework.DjangoFilterBackend
+    # is already globally registered) - lets the frontend show status tabs
+    # (Unpaid/Overdue/Paid/...) and a billing-period-scoped invoice list
+    # via real query params instead of filtering client-side.
+    filterset_fields = ["status", "billing_period", "lease"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

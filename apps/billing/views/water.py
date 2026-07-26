@@ -12,6 +12,10 @@ from ..serializers import WaterMeterReadingSerializer, WaterMeterReadingCreateSe
 class WaterMeterReadingViewSet(BaseModelViewSet):
 
     permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlord]
+    # Lets the frontend scope the readings table to a specific billing
+    # period or unit via a real query param instead of filtering
+    # client-side (same pattern as Lease/Occupancy/Invoice).
+    filterset_fields = ["billing_period", "unit"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

@@ -11,6 +11,10 @@ from ..serializers import BillingPeriodSerializer, BillingPeriodWriteSerializer
 class BillingPeriodViewSet(BaseModelViewSet):
 
     permission_classes = BaseModelViewSet.permission_classes + [IsAdminWriteAuthenticatedReadOnly]
+    # Lets the frontend restrict a "generate rent invoices" period picker
+    # to OPEN periods only via ?status=OPEN, instead of filtering
+    # client-side (same pattern as Lease/Occupancy/Invoice).
+    filterset_fields = ["status"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

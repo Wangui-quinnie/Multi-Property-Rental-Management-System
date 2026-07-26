@@ -1,0 +1,4269 @@
+openapi: 3.0.3
+info:
+  title: Multi-Property Rental Management System API
+  version: 1.0.0
+  description: API for managing properties, units, tenants, leases, billing, and payments
+    across a rental portfolio.
+paths:
+  /api/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/profile/:
+    get:
+      operationId: auth_profile_retrieve
+      description: |-
+        Nicknames `request.user` as `self.user` on any view that
+        inherits this. Purely a convenience — no behavior change.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_profile_partial_update
+      description: |-
+        Nicknames `request.user` as `self.user` on any view that
+        inherits this. Purely a convenience — no behavior change.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/billing/invoices/:
+    get:
+      operationId: billing_invoices_list
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvoiceList'
+          description: ''
+  /api/billing/invoices/{id}/:
+    get:
+      operationId: billing_invoices_retrieve
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Invoice.
+        required: true
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/billing/invoices/{id}/apply-late-fee/:
+    post:
+      operationId: billing_invoices_apply_late_fee_create
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Invoice.
+        required: true
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/billing/invoices/apply-late-fees/:
+    post:
+      operationId: billing_invoices_apply_late_fees_create
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/billing/invoices/arrears/:
+    get:
+      operationId: billing_invoices_arrears_retrieve
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/billing/invoices/generate-rent/:
+    post:
+      operationId: billing_invoices_generate_rent_create
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/billing/invoices/mark-overdue/:
+    post:
+      operationId: billing_invoices_mark_overdue_create
+      description: |-
+        Shared defaults for list/retrieve-only viewsets that expose their
+        real mutations through custom @action methods instead of the
+        standard create/update/delete verbs (e.g. Occupancy, which is only
+        ever created via the guarded `activate` action).
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/billing/periods/:
+    get:
+      operationId: billing_periods_list
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBillingPeriodList'
+          description: ''
+    post:
+      operationId: billing_periods_create
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillingPeriodWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BillingPeriodWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BillingPeriodWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingPeriodWrite'
+          description: ''
+  /api/billing/periods/{id}/:
+    get:
+      operationId: billing_periods_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Billing Period.
+        required: true
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingPeriod'
+          description: ''
+    put:
+      operationId: billing_periods_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Billing Period.
+        required: true
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillingPeriodWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BillingPeriodWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BillingPeriodWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingPeriodWrite'
+          description: ''
+    patch:
+      operationId: billing_periods_partial_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Billing Period.
+        required: true
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBillingPeriodWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBillingPeriodWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBillingPeriodWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingPeriodWrite'
+          description: ''
+    delete:
+      operationId: billing_periods_destroy
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Billing Period.
+        required: true
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/billing/water-readings/:
+    get:
+      operationId: billing_water_readings_list
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWaterMeterReadingList'
+          description: ''
+    post:
+      operationId: billing_water_readings_create
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReadingCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReadingCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReadingCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterMeterReadingCreate'
+          description: ''
+  /api/billing/water-readings/{id}/:
+    get:
+      operationId: billing_water_readings_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Water Meter Reading.
+        required: true
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterMeterReading'
+          description: ''
+    put:
+      operationId: billing_water_readings_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Water Meter Reading.
+        required: true
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReadingUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReadingUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReadingUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterMeterReadingUpdate'
+          description: ''
+    patch:
+      operationId: billing_water_readings_partial_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Water Meter Reading.
+        required: true
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWaterMeterReadingUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWaterMeterReadingUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWaterMeterReadingUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterMeterReadingUpdate'
+          description: ''
+    delete:
+      operationId: billing_water_readings_destroy
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Water Meter Reading.
+        required: true
+      tags:
+      - billing
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/billing/water-readings/{id}/apply-charge/:
+    post:
+      operationId: billing_water_readings_apply_charge_create
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Water Meter Reading.
+        required: true
+      tags:
+      - billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReading'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReading'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WaterMeterReading'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterMeterReading'
+          description: ''
+  /api/leases/:
+    get:
+      operationId: leases_list
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - leases
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLeaseList'
+          description: ''
+    post:
+      operationId: leases_create
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - leases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaseCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LeaseCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LeaseCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaseCreate'
+          description: ''
+  /api/leases/{id}/:
+    get:
+      operationId: leases_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Lease.
+        required: true
+      tags:
+      - leases
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+          description: ''
+    put:
+      operationId: leases_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Lease.
+        required: true
+      tags:
+      - leases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaseUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LeaseUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LeaseUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaseUpdate'
+          description: ''
+    patch:
+      operationId: leases_partial_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Lease.
+        required: true
+      tags:
+      - leases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLeaseUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLeaseUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLeaseUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaseUpdate'
+          description: ''
+  /api/leases/{id}/renew/:
+    post:
+      operationId: leases_renew_create
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Lease.
+        required: true
+      tags:
+      - leases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Lease'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Lease'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Lease'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+          description: ''
+  /api/leases/{id}/terminate/:
+    post:
+      operationId: leases_terminate_create
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Lease.
+        required: true
+      tags:
+      - leases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Lease'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Lease'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Lease'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+          description: ''
+  /api/occupancy/:
+    get:
+      operationId: occupancy_list
+      description: |-
+        Read-only list/retrieve (Occupancy records are never edited or
+        deleted directly — they're only created via the `activate` action,
+        and later ended via a dedicated move-out action in a future
+        Vacancy Management workflow).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - occupancy
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOccupancyList'
+          description: ''
+  /api/occupancy/{id}/:
+    get:
+      operationId: occupancy_retrieve
+      description: |-
+        Read-only list/retrieve (Occupancy records are never edited or
+        deleted directly — they're only created via the `activate` action,
+        and later ended via a dedicated move-out action in a future
+        Vacancy Management workflow).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Occupancy.
+        required: true
+      tags:
+      - occupancy
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Occupancy'
+          description: ''
+  /api/occupancy/activate/:
+    post:
+      operationId: occupancy_activate_create
+      description: |-
+        Read-only list/retrieve (Occupancy records are never edited or
+        deleted directly — they're only created via the `activate` action,
+        and later ended via a dedicated move-out action in a future
+        Vacancy Management workflow).
+      tags:
+      - occupancy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Occupancy'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Occupancy'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Occupancy'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Occupancy'
+          description: ''
+  /api/payments/:
+    get:
+      operationId: payments_list
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaymentList'
+          description: ''
+    post:
+      operationId: payments_create
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCreate'
+          description: ''
+  /api/payments/{id}/:
+    get:
+      operationId: payments_retrieve
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/{id}/allocate/:
+    post:
+      operationId: payments_allocate_create
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/{id}/allocate-oldest/:
+    post:
+      operationId: payments_allocate_oldest_create
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/{id}/allocations/{allocation_id}/remove/:
+    post:
+      operationId: payments_allocations_remove_create
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: allocation_id
+        schema:
+          type: string
+        description: UUID of the PaymentAllocation to remove.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/{id}/receipt/:
+    get:
+      operationId: payments_receipt_retrieve
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/{id}/receipt/pdf/:
+    get:
+      operationId: payments_receipt_pdf_retrieve
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/{id}/reconcile/:
+    post:
+      operationId: payments_reconcile_create
+      description: |-
+        Create + read only — Payments are immutable financial records
+        once created (no update/destroy). Admin and Landlord have full
+        access; Tenant has read-only access (list/retrieve/receipt) to
+        their own payments, enforced via IsAdminOrLandlordWriteTenantReadOnly
+        plus the existing queryset scoping in get_payments_for_user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Payment.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/mpesa/transactions/:
+    get:
+      operationId: payments_mpesa_transactions_list
+      description: |-
+        Read-only — MpesaTransactions are only ever created via the
+        initiate action, and only ever transitioned by the (separate,
+        unauthenticated) callback view.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMpesaTransactionList'
+          description: ''
+  /api/payments/mpesa/transactions/{id}/:
+    get:
+      operationId: payments_mpesa_transactions_retrieve
+      description: |-
+        Read-only — MpesaTransactions are only ever created via the
+        initiate action, and only ever transitioned by the (separate,
+        unauthenticated) callback view.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this M-Pesa Transaction.
+        required: true
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MpesaTransaction'
+          description: ''
+  /api/payments/mpesa/transactions/initiate/:
+    post:
+      operationId: payments_mpesa_transactions_initiate_create
+      description: |-
+        Read-only — MpesaTransactions are only ever created via the
+        initiate action, and only ever transitioned by the (separate,
+        unauthenticated) callback view.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MpesaTransaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MpesaTransaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MpesaTransaction'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MpesaTransaction'
+          description: ''
+  /api/payments/reconciliation/:
+    get:
+      operationId: payments_reconciliation_retrieve
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationDashboard'
+          description: ''
+  /api/properties/:
+    get:
+      operationId: properties_list
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: query
+        name: landlord
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: location
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+        description: |-
+          * `ACTIVE` - Active
+          * `INACTIVE` - Inactive
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPropertyList'
+          description: ''
+    post:
+      operationId: properties_create
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PropertyCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PropertyCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyCreate'
+          description: ''
+  /api/properties/{id}/:
+    get:
+      operationId: properties_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+    put:
+      operationId: properties_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PropertyUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PropertyUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyUpdate'
+          description: ''
+    patch:
+      operationId: properties_partial_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPropertyUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPropertyUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPropertyUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyUpdate'
+          description: ''
+    delete:
+      operationId: properties_destroy
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/properties/{id}/restore/:
+    post:
+      operationId: properties_restore_create
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Property'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Property'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Property'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+  /api/properties/dashboard/:
+    get:
+      operationId: properties_dashboard_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+          description: ''
+  /api/properties/units/:
+    get:
+      operationId: properties_units_list
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: query
+        name: floor_number
+        schema:
+          type: integer
+      - in: query
+        name: max_rent
+        schema:
+          type: number
+      - in: query
+        name: min_rent
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: property
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - INACTIVE
+          - MAINTENANCE
+          - OCCUPIED
+          - VACANT
+        description: |-
+          * `VACANT` - Vacant
+          * `OCCUPIED` - Occupied
+          * `MAINTENANCE` - Maintenance
+          * `INACTIVE` - Inactive
+      - in: query
+        name: unit_type
+        schema:
+          type: string
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUnitList'
+          description: ''
+    post:
+      operationId: properties_units_create
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitCreate'
+          description: ''
+  /api/properties/units/{id}/:
+    get:
+      operationId: properties_units_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+    put:
+      operationId: properties_units_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitUpdate'
+          description: ''
+    patch:
+      operationId: properties_units_partial_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitUpdate'
+          description: ''
+    delete:
+      operationId: properties_units_destroy
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/properties/units/{id}/restore/:
+    post:
+      operationId: properties_units_restore_create
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        required: true
+      tags:
+      - properties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Unit'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+  /api/properties/units/dashboard/:
+    get:
+      operationId: properties_units_dashboard_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - properties
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+  /api/reports/cash-flow/:
+    get:
+      operationId: reports_cash_flow_list
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CashFlowEntry'
+          description: ''
+  /api/reports/landlord-summary/:
+    get:
+      operationId: reports_landlord_summary_retrieve
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reports/rent/:
+    get:
+      operationId: reports_rent_retrieve
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentReport'
+          description: ''
+  /api/reports/water/:
+    get:
+      operationId: reports_water_retrieve
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterReport'
+          description: ''
+  /api/tenants/:
+    get:
+      operationId: tenants_list
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - tenants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTenantList'
+          description: ''
+    post:
+      operationId: tenants_create
+      description: Shared defaults for full-CRUD viewsets.
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenantCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCreate'
+          description: ''
+  /api/tenants/{id}/:
+    get:
+      operationId: tenants_retrieve
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Tenant.
+        required: true
+      tags:
+      - tenants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+    put:
+      operationId: tenants_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Tenant.
+        required: true
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenantUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUpdate'
+          description: ''
+    patch:
+      operationId: tenants_partial_update
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Tenant.
+        required: true
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUpdate'
+          description: ''
+    delete:
+      operationId: tenants_destroy
+      description: Shared defaults for full-CRUD viewsets.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Tenant.
+        required: true
+      tags:
+      - tenants
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/vacancy/:
+    get:
+      operationId: vacancy_list
+      description: |-
+        Read-only — VacancyPeriod records are only ever created/closed
+        internally by the Lease Termination and Occupancy Activation
+        services, never directly through this API.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - vacancy
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVacancyPeriodList'
+          description: ''
+  /api/vacancy/{id}/:
+    get:
+      operationId: vacancy_retrieve
+      description: |-
+        Read-only — VacancyPeriod records are only ever created/closed
+        internally by the Lease Termination and Occupancy Activation
+        services, never directly through this API.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Vacancy Period.
+        required: true
+      tags:
+      - vacancy
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacancyPeriod'
+          description: ''
+  /api/vacancy/dashboard/:
+    get:
+      operationId: vacancy_dashboard_retrieve
+      description: |-
+        Read-only — VacancyPeriod records are only ever created/closed
+        internally by the Lease Termination and Occupancy Activation
+        services, never directly through this API.
+      tags:
+      - vacancy
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacancyPeriod'
+          description: ''
+components:
+  schemas:
+    BillingPeriod:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+        end_date:
+          type: string
+          format: date
+          readOnly: true
+        due_date:
+          type: string
+          format: date
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BillingPeriodStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - due_date
+      - end_date
+      - id
+      - name
+      - start_date
+      - status
+      - updated_at
+    BillingPeriodStatusEnum:
+      enum:
+      - OPEN
+      - CLOSED
+      type: string
+      description: |-
+        * `OPEN` - Open
+        * `CLOSED` - Closed
+    BillingPeriodWrite:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/BillingPeriodStatusEnum'
+      required:
+      - due_date
+      - end_date
+      - name
+      - start_date
+    CashFlowEntry:
+      type: object
+      properties:
+        month:
+          type: string
+        total_collected:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+      required:
+      - month
+      - total_collected
+    ChangePassword:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+        confirm_password:
+          type: string
+          writeOnly: true
+      required:
+      - confirm_password
+      - current_password
+      - new_password
+    IntegrityMismatch:
+      type: object
+      properties:
+        type:
+          type: string
+        payment_id:
+          type: string
+          format: uuid
+        payment_reference:
+          type: string
+        invoice_id:
+          type: string
+          format: uuid
+        invoice_number:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        difference:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        recorded_amount_paid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        actual_allocated_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - type
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        lease:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant_name:
+          type: string
+          readOnly: true
+        unit_number:
+          type: string
+          readOnly: true
+        property_name:
+          type: string
+          readOnly: true
+        billing_period:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        billing_period_name:
+          type: string
+          readOnly: true
+        invoice_number:
+          type: string
+          readOnly: true
+        invoice_date:
+          type: string
+          format: date
+          readOnly: true
+        due_date:
+          type: string
+          format: date
+          readOnly: true
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        amount_paid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/InvoiceStatusEnum'
+          readOnly: true
+        is_overdue:
+          type: boolean
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceItem'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount_paid
+      - balance
+      - billing_period
+      - billing_period_name
+      - created_at
+      - due_date
+      - id
+      - invoice_date
+      - invoice_number
+      - is_overdue
+      - items
+      - lease
+      - property_name
+      - status
+      - subtotal
+      - tax_amount
+      - tenant_name
+      - total_amount
+      - unit_number
+      - updated_at
+    InvoiceItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item_type:
+          allOf:
+          - $ref: '#/components/schemas/InvoiceItemTypeEnum'
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - created_at
+      - description
+      - id
+      - item_type
+      - quantity
+      - unit_price
+    InvoiceItemTypeEnum:
+      enum:
+      - RENT
+      - WATER
+      - ELECTRICITY
+      - GARBAGE
+      - SERVICE_CHARGE
+      - PENALTY
+      - DEPOSIT
+      - OTHER
+      type: string
+      description: |-
+        * `RENT` - Rent
+        * `WATER` - Water
+        * `ELECTRICITY` - Electricity
+        * `GARBAGE` - Garbage
+        * `SERVICE_CHARGE` - Service Charge
+        * `PENALTY` - Penalty
+        * `DEPOSIT` - Deposit
+        * `OTHER` - Other
+    InvoiceStatusEnum:
+      enum:
+      - DRAFT
+      - UNPAID
+      - PARTIALLY_PAID
+      - PAID
+      - OVERDUE
+      - CANCELLED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `UNPAID` - Unpaid
+        * `PARTIALLY_PAID` - Partially Paid
+        * `PAID` - Paid
+        * `OVERDUE` - Overdue
+        * `CANCELLED` - Cancelled
+    Lease:
+      type: object
+      description: Read serializer — list/retrieve.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant_name:
+          type: string
+          readOnly: true
+        unit:
+          type: string
+          format: uuid
+          readOnly: true
+        unit_number:
+          type: string
+          readOnly: true
+        property_name:
+          type: string
+          readOnly: true
+        lease_start_date:
+          type: string
+          format: date
+          readOnly: true
+        lease_end_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        deposit_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        billing_day:
+          type: integer
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/LeaseStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - billing_day
+      - created_at
+      - deposit_amount
+      - id
+      - lease_end_date
+      - lease_start_date
+      - property_name
+      - rent_amount
+      - status
+      - tenant
+      - tenant_name
+      - unit
+      - unit_number
+      - updated_at
+    LeaseCreate:
+      type: object
+      properties:
+        tenant:
+          type: string
+          format: uuid
+        unit:
+          type: string
+          format: uuid
+        lease_start_date:
+          type: string
+          format: date
+        lease_end_date:
+          type: string
+          format: date
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        deposit_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        billing_day:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/LeaseStatusEnum'
+      required:
+      - lease_start_date
+      - rent_amount
+      - tenant
+      - unit
+    LeaseStatusEnum:
+      enum:
+      - ACTIVE
+      - ENDED
+      - CANCELLED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `ENDED` - Ended
+        * `CANCELLED` - Cancelled
+    LeaseUpdate:
+      type: object
+      description: |-
+        Deliberately excludes `tenant` and `unit` — reassigning a lease to
+        a different tenant/unit isn't an "update," it's a new lease. This
+        mirrors PropertyUpdateSerializer excluding `landlord` and
+        UnitUpdateSerializer excluding `property`.
+      properties:
+        lease_start_date:
+          type: string
+          format: date
+        lease_end_date:
+          type: string
+          format: date
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        deposit_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        billing_day:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/LeaseStatusEnum'
+      required:
+      - lease_start_date
+      - rent_amount
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+      required:
+      - refresh
+    MpesaTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        checkout_request_id:
+          type: string
+          readOnly: true
+        mpesa_receipt_number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/MpesaTransactionStatusEnum'
+          readOnly: true
+        result_description:
+          type: string
+          readOnly: true
+        payment:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - checkout_request_id
+      - created_at
+      - id
+      - mpesa_receipt_number
+      - payment
+      - phone_number
+      - result_description
+      - status
+      - tenant
+      - tenant_name
+      - updated_at
+    MpesaTransactionStatusEnum:
+      enum:
+      - PENDING
+      - SUCCESS
+      - FAILED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `SUCCESS` - Success
+        * `FAILED` - Failed
+        * `CANCELLED` - Cancelled
+    Occupancy:
+      type: object
+      description: Read serializer — list/retrieve.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        lease:
+          type: string
+          format: uuid
+          readOnly: true
+        unit:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant_name:
+          type: string
+          readOnly: true
+        unit_number:
+          type: string
+          readOnly: true
+        property_name:
+          type: string
+          readOnly: true
+        move_in_date:
+          type: string
+          format: date
+          readOnly: true
+        move_out_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/OccupancyStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - lease
+      - move_in_date
+      - move_out_date
+      - property_name
+      - status
+      - tenant_name
+      - unit
+      - unit_number
+      - updated_at
+    OccupancyStatusEnum:
+      enum:
+      - ACTIVE
+      - ENDED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `ENDED` - Ended
+    PaginatedBillingPeriodList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingPeriod'
+    PaginatedInvoiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+    PaginatedLeaseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lease'
+    PaginatedMpesaTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MpesaTransaction'
+    PaginatedOccupancyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Occupancy'
+    PaginatedPaymentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+    PaginatedPropertyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Property'
+    PaginatedTenantList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenant'
+    PaginatedUnitList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Unit'
+    PaginatedVacancyPeriodList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VacancyPeriod'
+    PaginatedWaterMeterReadingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/WaterMeterReading'
+    PatchedBillingPeriodWrite:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/BillingPeriodStatusEnum'
+    PatchedLeaseUpdate:
+      type: object
+      description: |-
+        Deliberately excludes `tenant` and `unit` — reassigning a lease to
+        a different tenant/unit isn't an "update," it's a new lease. This
+        mirrors PropertyUpdateSerializer excluding `landlord` and
+        UnitUpdateSerializer excluding `property`.
+      properties:
+        lease_start_date:
+          type: string
+          format: date
+        lease_end_date:
+          type: string
+          format: date
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        deposit_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        billing_day:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/LeaseStatusEnum'
+    PatchedProfileUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone_number:
+          type: string
+          maxLength: 30
+    PatchedPropertyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        location:
+          type: string
+          maxLength: 150
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/PropertyStatusEnum'
+    PatchedTenantUpdate:
+      type: object
+      description: |-
+        Updates Tenant-specific fields only (not User fields like name/phone —
+        that's handled separately via the tenant's own profile endpoint).
+      properties:
+        national_id:
+          type: string
+          nullable: true
+          maxLength: 50
+        emergency_contact_name:
+          type: string
+          maxLength: 150
+        emergency_contact_phone:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/TenantStatusEnum'
+    PatchedUnitUpdate:
+      type: object
+      properties:
+        unit_type:
+          type: string
+          maxLength: 80
+        floor_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/UnitStatusEnum'
+    PatchedWaterMeterReadingUpdate:
+      type: object
+      description: |-
+        Deliberately excludes `unit` and `billing_period` — those define
+        which reading this is, not correctable fields.
+      properties:
+        previous_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        current_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        rate_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reading_date:
+          type: string
+          format: date
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant:
+          type: string
+          format: uuid
+          readOnly: true
+        tenant_name:
+          type: string
+          readOnly: true
+        payment_reference:
+          type: string
+          readOnly: true
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        payment_date:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          readOnly: true
+        notes:
+          type: string
+          readOnly: true
+        is_reconciled:
+          type: boolean
+          readOnly: true
+        reconciled_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        reconciled_by_name:
+          type: string
+          nullable: true
+          readOnly: true
+        allocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentAllocation'
+          readOnly: true
+        total_allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        unallocated_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - allocations
+      - amount
+      - created_at
+      - id
+      - is_reconciled
+      - notes
+      - payment_date
+      - payment_method
+      - payment_reference
+      - reconciled_at
+      - reconciled_by_name
+      - status
+      - tenant
+      - tenant_name
+      - total_allocated
+      - unallocated_amount
+      - updated_at
+    PaymentAllocation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        payment:
+          type: string
+          format: uuid
+          readOnly: true
+        invoice:
+          type: string
+          format: uuid
+          readOnly: true
+        invoice_number:
+          type: string
+          readOnly: true
+        amount_allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount_allocated
+      - created_at
+      - id
+      - invoice
+      - invoice_number
+      - payment
+    PaymentCreate:
+      type: object
+      properties:
+        tenant:
+          type: string
+          format: uuid
+        payment_reference:
+          type: string
+          maxLength: 100
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment_date:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        notes:
+          type: string
+      required:
+      - amount
+      - payment_date
+      - payment_method
+      - payment_reference
+      - tenant
+    PaymentMethodEnum:
+      enum:
+      - CASH
+      - BANK_TRANSFER
+      - MPESA
+      - CARD
+      - OTHER
+      type: string
+      description: |-
+        * `CASH` - Cash
+        * `BANK_TRANSFER` - Bank Transfer
+        * `MPESA` - Mpesa
+        * `CARD` - Card
+        * `OTHER` - Other
+    PaymentStatusEnum:
+      enum:
+      - PENDING
+      - CONFIRMED
+      - FAILED
+      - REVERSED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `CONFIRMED` - Confirmed
+        * `FAILED` - Failed
+        * `REVERSED` - Reversed
+    Property:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        landlord:
+          type: string
+          format: uuid
+        landlord_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        code:
+          type: string
+          maxLength: 50
+        location:
+          type: string
+          maxLength: 150
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/PropertyStatusEnum'
+        is_archived:
+          type: boolean
+          readOnly: true
+        archived_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        total_units:
+          type: integer
+          readOnly: true
+        occupied_units:
+          type: integer
+          readOnly: true
+        vacant_units:
+          type: integer
+          readOnly: true
+        maintenance_units:
+          type: integer
+          readOnly: true
+        potential_monthly_rent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        occupancy_rate:
+          type: number
+          format: double
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - archived_at
+      - code
+      - created_at
+      - id
+      - is_archived
+      - landlord
+      - landlord_name
+      - location
+      - maintenance_units
+      - name
+      - occupancy_rate
+      - occupied_units
+      - potential_monthly_rent
+      - total_units
+      - updated_at
+      - vacant_units
+    PropertyCreate:
+      type: object
+      properties:
+        landlord:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 150
+        code:
+          type: string
+          maxLength: 50
+        location:
+          type: string
+          maxLength: 150
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/PropertyStatusEnum'
+      required:
+      - code
+      - location
+      - name
+    PropertyStatusEnum:
+      enum:
+      - ACTIVE
+      - INACTIVE
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `INACTIVE` - Inactive
+    PropertyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        location:
+          type: string
+          maxLength: 150
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/PropertyStatusEnum'
+      required:
+      - location
+      - name
+    ReconciliationDashboard:
+      type: object
+      properties:
+        unallocated_payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnallocatedPayment'
+        stale_pending_mpesa:
+          type: array
+          items:
+            $ref: '#/components/schemas/StalePendingMpesa'
+        integrity_mismatches:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrityMismatch'
+      required:
+      - integrity_mismatches
+      - stale_pending_mpesa
+      - unallocated_payments
+    RentReport:
+      type: object
+      properties:
+        rent_billed:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        total_billed:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        total_collected:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        total_outstanding:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        invoice_count:
+          type: integer
+      required:
+      - invoice_count
+      - rent_billed
+      - total_billed
+      - total_collected
+      - total_outstanding
+    RoleEnum:
+      enum:
+      - ADMIN
+      - LANDLORD
+      - TENANT
+      type: string
+      description: |-
+        * `ADMIN` - Admin
+        * `LANDLORD` - Landlord
+        * `TENANT` - Tenant
+    StalePendingMpesa:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        checkout_request_id:
+          type: string
+        tenant_name:
+          type: string
+        phone_number:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        pending_since:
+          type: string
+          format: date-time
+        hours_pending:
+          type: number
+          format: double
+      required:
+      - amount
+      - checkout_request_id
+      - hours_pending
+      - pending_since
+      - phone_number
+      - tenant_name
+      - transaction_id
+    Tenant:
+      type: object
+      description: Read serializer — list/retrieve.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        national_id:
+          type: string
+          readOnly: true
+          nullable: true
+        emergency_contact_name:
+          type: string
+          readOnly: true
+        emergency_contact_phone:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/TenantStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - emergency_contact_name
+      - emergency_contact_phone
+      - full_name
+      - id
+      - national_id
+      - phone_number
+      - status
+      - updated_at
+    TenantCreate:
+      type: object
+      description: |-
+        Creates a User (role=TENANT) + Tenant profile atomically.
+        Admin-only endpoint. Creator sets the tenant's password directly —
+        no self-registration, no email flow yet (see earlier project decision).
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          writeOnly: true
+        username:
+          type: string
+          writeOnly: true
+        first_name:
+          type: string
+          writeOnly: true
+        last_name:
+          type: string
+          writeOnly: true
+        phone_number:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        national_id:
+          type: string
+          nullable: true
+          maxLength: 50
+        emergency_contact_name:
+          type: string
+          maxLength: 150
+        emergency_contact_phone:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/TenantStatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - id
+      - password
+      - updated_at
+    TenantStatusEnum:
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - BLACKLISTED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `INACTIVE` - Inactive
+        * `BLACKLISTED` - Blacklisted
+    TenantUpdate:
+      type: object
+      description: |-
+        Updates Tenant-specific fields only (not User fields like name/phone —
+        that's handled separately via the tenant's own profile endpoint).
+      properties:
+        national_id:
+          type: string
+          nullable: true
+          maxLength: 50
+        emergency_contact_name:
+          type: string
+          maxLength: 150
+        emergency_contact_phone:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/TenantStatusEnum'
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    UnallocatedPayment:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+        payment_reference:
+          type: string
+        tenant_name:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_allocated:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        unallocated_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - amount
+      - payment_id
+      - payment_reference
+      - tenant_name
+      - total_allocated
+      - unallocated_amount
+    Unit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        property:
+          type: string
+          format: uuid
+        property_name:
+          type: string
+          readOnly: true
+        landlord_name:
+          type: string
+          readOnly: true
+        unit_number:
+          type: string
+          maxLength: 50
+        unit_type:
+          type: string
+          maxLength: 80
+        floor_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/UnitStatusEnum'
+        is_archived:
+          type: boolean
+          readOnly: true
+        archived_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - archived_at
+      - created_at
+      - id
+      - is_archived
+      - landlord_name
+      - property
+      - property_name
+      - rent_amount
+      - unit_number
+      - updated_at
+    UnitCreate:
+      type: object
+      properties:
+        property:
+          type: string
+          format: uuid
+        unit_number:
+          type: string
+          maxLength: 50
+        unit_type:
+          type: string
+          maxLength: 80
+        floor_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/UnitStatusEnum'
+      required:
+      - property
+      - rent_amount
+      - unit_number
+    UnitStatusEnum:
+      enum:
+      - VACANT
+      - OCCUPIED
+      - MAINTENANCE
+      - INACTIVE
+      type: string
+      description: |-
+        * `VACANT` - Vacant
+        * `OCCUPIED` - Occupied
+        * `MAINTENANCE` - Maintenance
+        * `INACTIVE` - Inactive
+    UnitUpdate:
+      type: object
+      properties:
+        unit_type:
+          type: string
+          maxLength: 80
+        floor_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        rent_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/UnitStatusEnum'
+      required:
+      - rent_amount
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        is_email_verified:
+          type: boolean
+          readOnly: true
+      required:
+      - email
+      - first_name
+      - full_name
+      - id
+      - is_email_verified
+      - last_name
+      - phone_number
+      - role
+      - username
+    VacancyPeriod:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        unit:
+          type: string
+          format: uuid
+          readOnly: true
+        unit_number:
+          type: string
+          readOnly: true
+        property_name:
+          type: string
+          readOnly: true
+        vacated_at:
+          type: string
+          format: date
+          readOnly: true
+        occupied_at:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        is_open:
+          type: boolean
+          readOnly: true
+        days_vacant:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - days_vacant
+      - id
+      - is_open
+      - occupied_at
+      - property_name
+      - unit
+      - unit_number
+      - updated_at
+      - vacated_at
+    WaterMeterReading:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        unit:
+          type: string
+          format: uuid
+          readOnly: true
+        unit_number:
+          type: string
+          readOnly: true
+        property_name:
+          type: string
+          readOnly: true
+        billing_period:
+          type: string
+          format: uuid
+          readOnly: true
+        billing_period_name:
+          type: string
+          readOnly: true
+        previous_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        current_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        units_consumed:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        rate_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        reading_date:
+          type: string
+          format: date
+          readOnly: true
+        invoice_item:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        is_billed:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - billing_period
+      - billing_period_name
+      - created_at
+      - current_reading
+      - id
+      - invoice_item
+      - is_billed
+      - previous_reading
+      - property_name
+      - rate_per_unit
+      - reading_date
+      - unit
+      - unit_number
+      - units_consumed
+      - updated_at
+    WaterMeterReadingCreate:
+      type: object
+      properties:
+        unit:
+          type: string
+          format: uuid
+        billing_period:
+          type: string
+          format: uuid
+        previous_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        current_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        rate_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reading_date:
+          type: string
+          format: date
+      required:
+      - billing_period
+      - current_reading
+      - rate_per_unit
+      - reading_date
+      - unit
+    WaterMeterReadingUpdate:
+      type: object
+      description: |-
+        Deliberately excludes `unit` and `billing_period` — those define
+        which reading this is, not correctable fields.
+      properties:
+        previous_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        current_reading:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        rate_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reading_date:
+          type: string
+          format: date
+      required:
+      - current_reading
+      - rate_per_unit
+      - reading_date
+    WaterReport:
+      type: object
+      properties:
+        total_units_consumed:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        total_water_billed:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        reading_count:
+          type: integer
+      required:
+      - reading_count
+      - total_units_consumed
+      - total_water_billed
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
