@@ -26,8 +26,8 @@ export function Login() {
     setError("");
     setIsSubmitting(true);
     try {
-      await login(email, password);
-      navigate("/dashboard");
+      const loggedInUser = await login(email, password);
+      navigate(loggedInUser.role === "TENANT" ? "/portal" : "/dashboard");
     } catch {
       setError("Invalid email or password.");
     } finally {

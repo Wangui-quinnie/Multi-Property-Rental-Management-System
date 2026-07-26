@@ -86,8 +86,8 @@ describe("Login", () => {
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
-  it("logs in and navigates to /dashboard on successful submit", async () => {
-    const login = vi.fn().mockResolvedValue(undefined);
+  it("logs in and navigates to /dashboard for an Admin/Landlord on successful submit", async () => {
+    const login = vi.fn().mockResolvedValue({ id: "1", email: "a@b.com", role: "ADMIN" });
     mockedUseAuth.mockReturnValue({ user: null, isLoading: false, login, logout: vi.fn() });
 
     const user = userEvent.setup();
@@ -99,6 +99,20 @@ describe("Login", () => {
 
     expect(login).toHaveBeenCalledWith("a@b.com", "secret");
     expect(await screen.findByText("Dashboard Page")).toBeInTheDocument();
+  });
+
+  it("logs in and navigates to /portal for a Tenant on successful submit", async () => {
+    const login = vi.fn().mockResolvedValue({ id: "2", email: "t@b.com", role: "TENANT" });
+    mockedUseAuth.mockReturnValue({ user: null, isLoading: false, login, logout: vi.fn() });
+
+    const user = userEvent.setup();
+    renderLogin();
+
+    await user.type(screen.getByLabelText(/email/i), "t@b.com");
+    await user.type(screen.getByLabelText(/password/i), "secret");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    expect(await screen.findByText("Portal Page")).toBeInTheDocument();
   });
 
   it("shows an error alert when login fails", async () => {

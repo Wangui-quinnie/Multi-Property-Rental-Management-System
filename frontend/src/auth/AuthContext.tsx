@@ -13,7 +13,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -45,6 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("access_token", data.data.access);
     localStorage.setItem("refresh_token", data.data.refresh);
     setUser(data.data.user);
+    // Returned directly (not read back from state) so the caller can
+    // navigate based on the fresh role immediately - setUser above
+    // won't have committed by the time this function returns.
+    return data.data.user as User;
   }
 
   async function logout() {

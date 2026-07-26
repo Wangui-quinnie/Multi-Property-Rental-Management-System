@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/auth/AuthContext";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
@@ -23,6 +23,11 @@ import { VacancyPage } from "@/pages/vacancy/VacancyPage";
 import { BillingPage } from "@/pages/billing/BillingPage";
 import { PaymentsPage } from "@/pages/payments/PaymentsPage";
 import { ReportsPage } from "@/pages/reports/ReportsPage";
+import { TenantLeasePage } from "@/pages/portal/TenantLeasePage";
+import { TenantInvoicesPage } from "@/pages/portal/TenantInvoicesPage";
+import { TenantPaymentsPage } from "@/pages/portal/TenantPaymentsPage";
+import { TenantReceiptsPage } from "@/pages/portal/TenantReceiptsPage";
+import { TenantProfilePage } from "@/pages/portal/TenantProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -66,7 +71,12 @@ export default function App() {
 
             <Route element={<ProtectedRoute allowedRoles={["TENANT"]} />}>
               <Route element={<TenantLayout />}>
-                <Route path="/portal" element={<Dashboard />} />
+                <Route path="/portal" element={<Navigate to="/portal/lease" replace />} />
+                <Route path="/portal/lease" element={<TenantLeasePage />} />
+                <Route path="/portal/invoices" element={<TenantInvoicesPage />} />
+                <Route path="/portal/payments" element={<TenantPaymentsPage />} />
+                <Route path="/portal/receipts" element={<TenantReceiptsPage />} />
+                <Route path="/portal/profile" element={<TenantProfilePage />} />
               </Route>
             </Route>
 
