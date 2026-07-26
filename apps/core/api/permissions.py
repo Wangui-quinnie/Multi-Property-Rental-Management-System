@@ -45,6 +45,26 @@ class IsAdminOrLandlordWriteTenantReadOnly(BasePermission):
             return True
         return request.user.is_admin_or_landlord
 
+class IsAdminWriteLandlordReadOnly(BasePermission):
+    """
+    Only Admin may write (POST/PUT/PATCH/DELETE). Landlords may read
+    (GET) but not write. Tenants and other roles get no access at all.
+    Used for Tenant records: Admin manages the tenant roster, but
+    Landlords need read-only visibility to pick a tenant when creating
+    a Lease - actual visibility (e.g. hiding INACTIVE/BLACKLISTED
+    tenants from Landlords) is enforced by queryset scoping in
+    get_queryset(), not here.
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.role == request.user.Role.ADMIN:
+            return True
+        if request.method in SAFE_METHODS:
+            return request.user.role == request.user.Role.LANDLORD
+        return False
+
+
 class IsAdminWriteAuthenticatedReadOnly(BasePermission):
     """
     Any authenticated user may read (list/retrieve). Write methods

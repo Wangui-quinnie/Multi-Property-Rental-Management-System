@@ -16,6 +16,10 @@ import { PropertyEditPage } from "@/pages/properties/PropertyEditPage";
 import { UnitsPage } from "@/pages/units/UnitsPage";
 import { TenantsPage } from "@/pages/tenants/TenantsPage";
 import { TenantCreatePage } from "@/pages/tenants/TenantCreatePage";
+import { LeasesPage } from "@/pages/leases/LeasesPage";
+import { LeaseCreatePage } from "@/pages/leases/LeaseCreatePage";
+import { LeaseEditPage } from "@/pages/leases/LeaseEditPage";
+import { VacancyPage } from "@/pages/vacancy/VacancyPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +41,10 @@ export default function App() {
                 <Route path="/properties/:id" element={<PropertyDetailPage />} />
                 <Route path="/properties/:id/edit" element={<PropertyEditPage />} />
                 <Route path="/units" element={<UnitsPage />} />
+                <Route path="/leases" element={<LeasesPage />} />
+                <Route path="/leases/new" element={<LeaseCreatePage />} />
+                <Route path="/leases/:id/edit" element={<LeaseEditPage />} />
+                <Route path="/vacancy" element={<VacancyPage />} />
               </Route>
             </Route>
 

@@ -37,12 +37,16 @@ describe("AdminLayout", () => {
     renderLayout();
 
     expect(screen.getByRole("link", { name: /properties/i })).toBeInTheDocument();
+    // Leases/Vacancy ARE shared with Admin (both viewsets' permissions
+    // fully allow Admin too) - only Units has no direct Admin link,
+    // reachable instead via a Property's detail page.
+    expect(screen.getByRole("link", { name: /leases/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /vacancy/i })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /units/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /leases/i })).not.toBeInTheDocument();
     expect(screen.getByText("Dashboard Body")).toBeInTheDocument();
   });
 
-  it("shows the Landlord nav set (Admin's + Units/Leases) for a Landlord user", () => {
+  it("shows the Landlord nav set (Admin's + Units) for a Landlord user", () => {
     mockedUseAuth.mockReturnValue({
       user: { id: "2", email: "landlord@b.com", role: "LANDLORD" },
       isLoading: false,
@@ -54,6 +58,7 @@ describe("AdminLayout", () => {
 
     expect(screen.getByRole("link", { name: /units/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /leases/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /vacancy/i })).toBeInTheDocument();
     // Tenants is Admin-only - a Landlord nav link to it would just
     // redirect them away, so it must not appear in their sidebar.
     expect(screen.queryByRole("link", { name: /tenants/i })).not.toBeInTheDocument();

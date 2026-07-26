@@ -1,5 +1,5 @@
 from apps.core.api.viewsets import BaseModelViewSet
-from apps.core.api.permissions import IsAdmin
+from apps.core.api.permissions import IsAdminWriteLandlordReadOnly
 
 from ..selectors import get_tenants_for_user
 from ..serializers import TenantSerializer, TenantCreateSerializer, TenantUpdateSerializer
@@ -7,7 +7,11 @@ from ..serializers import TenantSerializer, TenantCreateSerializer, TenantUpdate
 
 class TenantViewSet(BaseModelViewSet):
 
-    permission_classes = BaseModelViewSet.permission_classes + [IsAdmin]
+    # Admin has full CRUD; Landlords get read-only (list/retrieve) so they
+    # can pick a tenant when creating a Lease. Actual visibility (Landlords
+    # only see ACTIVE tenants) is enforced in get_queryset() via the
+    # get_tenants_for_user() selector.
+    permission_classes = BaseModelViewSet.permission_classes + [IsAdminWriteLandlordReadOnly]
     # Backs the ?search= param already advertised in the OpenAPI schema
     # via the project-wide SearchFilter backend (config/settings.py) -
     # without this, search was a silent no-op since SearchFilter reads

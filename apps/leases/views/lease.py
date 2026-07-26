@@ -16,6 +16,10 @@ class LeaseViewSet(BaseModelViewSet):
 
     permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlordWriteTenantReadOnly]
     http_method_names = ["get", "post", "put", "patch", "head", "options"]
+    # Same pattern as the Occupancy filter fix - lets the frontend show
+    # status tabs (Active/Ended/Cancelled) and unit/tenant-scoped views
+    # via a real query param instead of filtering client-side.
+    filterset_fields = ["status", "unit", "tenant"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

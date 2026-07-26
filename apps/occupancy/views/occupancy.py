@@ -19,6 +19,12 @@ class OccupancyViewSet(ReadOnlyBaseViewSet):
     """
 
     serializer_class = OccupancySerializer
+    # Exact-match filters (django_filters.rest_framework.DjangoFilterBackend
+    # is already globally registered) - added so the frontend can check
+    # "does this lease already have an occupancy?" via ?lease=<id> instead
+    # of guessing client-side. No custom FilterSet needed for simple
+    # exact-match FK/status filters.
+    filterset_fields = ["lease", "unit", "status"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

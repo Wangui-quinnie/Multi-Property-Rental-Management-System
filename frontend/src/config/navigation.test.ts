@@ -8,22 +8,26 @@ describe("getNavItems", () => {
       "Dashboard",
       "Properties",
       "Tenants",
+      "Leases",
+      "Vacancy",
       "Billing",
       "Payments",
       "Reports",
     ]);
   });
 
-  it("returns the Landlord nav set (Admin's minus Tenants, plus Units and Leases)", () => {
+  it("returns the Landlord nav set (Admin's minus Tenants, plus Units)", () => {
     // Tenants is deliberately excluded here - TenantViewSet is Admin-only
     // (IsAdmin, not IsAdminOrLandlord), so a Landlord nav link to it
-    // would just redirect them away.
+    // would just redirect them away. Leases/Vacancy ARE shared with
+    // Admin (both viewsets' permissions fully allow Admin too).
     const labels = getNavItems("LANDLORD").map((i) => i.label);
     expect(labels).toEqual([
       "Dashboard",
       "Properties",
       "Units",
       "Leases",
+      "Vacancy",
       "Billing",
       "Payments",
       "Reports",
