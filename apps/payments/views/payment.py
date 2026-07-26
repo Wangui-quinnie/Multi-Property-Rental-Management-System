@@ -33,6 +33,11 @@ class PaymentViewSet(BaseModelViewSet):
 
     http_method_names = ["get", "post", "head", "options"]
     permission_classes = BaseModelViewSet.permission_classes + [IsAdminOrLandlordWriteTenantReadOnly]
+    # Exact-match filters (django_filters.rest_framework.DjangoFilterBackend
+    # is already globally registered) - lets the frontend show status tabs
+    # and tenant/method-scoped views via real query params instead of
+    # filtering client-side (same pattern as Lease/Occupancy/Invoice/etc).
+    filterset_fields = ["status", "tenant", "payment_method"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

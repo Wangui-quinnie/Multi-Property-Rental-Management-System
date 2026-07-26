@@ -24,6 +24,9 @@ class MpesaTransactionViewSet(ReadOnlyBaseViewSet):
     """
 
     serializer_class = MpesaTransactionSerializer
+    # Lets the frontend scope the transactions table to a status or
+    # tenant via a real query param instead of filtering client-side.
+    filterset_fields = ["status", "tenant"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
